@@ -4,7 +4,9 @@ Protótipo funcional da extensão que leva para o sistema atual da Ambipar a ope
 
 ## Como abrir
 
-Dê dois cliques em **`Abrir Jornada TECSO.bat`**, ou abra `app/index.html` no Chrome ou no Edge. Não precisa de internet nem de instalar nada.
+**Pelo navegador (GitHub Pages):** https://tezzy05.github.io/Jornada-de-Profissionaliza-ao-TECSO-Ambipar/
+
+**No computador:** dê dois cliques em **`Abrir Jornada TECSO.bat`**, ou abra `app/index.html` no Chrome ou no Edge. Não precisa de internet nem de instalar nada.
 
 Na tela de login, use o **acesso rápido** ou entre com e-mail e senha. Todos os usuários usam a senha **`planetaA`**.
 
