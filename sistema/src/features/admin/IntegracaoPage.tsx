@@ -27,7 +27,7 @@ export default function IntegracaoPage() {
           <div className="panel p-4 text-center"><b className="font-display block">Armazenamento de mídia</b><small className="muted">Fotos e vídeos via API do Google Drive<br />(acesso só pelo sistema)</small></div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 mt-4">
-          {['Cronograma de campo e visitas DCO', 'Programa de Aceleração (P1 a P5)', 'Cidades Circular (macro projeto → demandas)', 'Histórico da cooperativa (Excel + ZIP)'].map((m) => (
+          {['Cronograma de campo e visitas DCO', 'Programa de Aceleração', 'Cidades Circular (macro projeto → demandas)', 'Histórico da cooperativa (Excel + ZIP)'].map((m) => (
             <div key={m} className="info !mb-0 flex items-center gap-2"><Check className="w-4 h-4 text-[var(--ok)] flex-none" />{m}</div>
           ))}
         </div>
@@ -44,7 +44,7 @@ export default function IntegracaoPage() {
       </div>
 
       <div className="card">
-        <div className="pad pb-1.5"><h3 className="text-[15px] font-bold m-0">Matriz de permissões dos perfis-base</h3><p className="muted text-[12.5px]">O ADM pode liberar ou retirar acessos de cada usuário em "Usuários e acessos".</p></div>
+        <div className="pad pb-1.5"><h3 className="text-[15px] font-bold m-0">Matriz de permissões dos perfis-base</h3></div>
         <div className="tbl-wrap">
           <table>
             <thead><tr><th>Acesso</th>{ORDEM.map((p) => <th key={p} className="!text-center">{PERFIS[p].nome}</th>)}</tr></thead>

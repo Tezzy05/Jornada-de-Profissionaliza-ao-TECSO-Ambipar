@@ -18,7 +18,7 @@ export default function GruposPage() {
 
   return (
     <div>
-      <PageHead crumbs="Cooperativas" title="Grupos parceiros" sub={scope.todos ? 'Cooperativas e associações de todos os projetos (respeitando o filtro do topo).' : 'Cooperativas dos projetos em que você está vinculado.'}>
+      <PageHead crumbs="Cooperativas" title="Grupos parceiros" sub="Cooperativas e associações parceiras.">
         {can(me, 'grupos.cadastrar') && <button className="btn pri" onClick={() => setNovo(true)}><Plus /> Novo grupo</button>}
       </PageHead>
       <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(310px,1fr))]">

@@ -8,6 +8,7 @@ import { fmt, fmtDateTime, fmtShort, nowISO } from '@/lib/dates';
 import { Bar, Empty, Field, MediaThumb, Modal, toast } from '@/components/ui';
 import { chkTotals, phTotals, termosOk, declOk, planoOk, STATUS_VISITA, visitaPct } from './dco';
 import { updVisita } from './actions';
+import { TecnicoSelect, trocarResponsavel } from '@/components/TecnicoSelect';
 import Analise from './docs/Analise';
 import Fotos from './docs/Fotos';
 import Equipamentos from './docs/Equipamentos';
@@ -94,7 +95,24 @@ export default function VisitaPage() {
             <div className="flex gap-4 flex-wrap text-[12.5px] muted mt-1.5 [&_svg]:w-3.5 [&_svg]:h-3.5 [&>span]:flex [&>span]:items-center [&>span]:gap-1">
               <span><MapPin /> {v.endereco} · {end} · {coop.cidade}-{coop.uf}</span>
               <span><User /> Liderança: {coop.lideranca}</span>
-              <span><HardHat /> Técnico: {tec?.nome}</span>
+              {can(me, 'aceleracao.responsaveis') && v.status !== 'aprovada' ? (
+                <span>
+                  <HardHat /> Técnico:
+                  <TecnicoSelect
+                    className="!py-0.5 !px-2 !w-auto !text-[12.5px]"
+                    value={v.tecnicoId}
+                    onChange={(id) => {
+                      upd((x) => {
+                        x.tecnicoId = id;
+                        x.hist.push({ em: nowISO(), por: me.id, acao: 'Técnico responsável alterado', detalhe: db.users.find((u) => u.id === id)?.nome });
+                      });
+                      trocarResponsavel(id, v.projetoId, `a visita DCO da ${coop.nome}`);
+                    }}
+                  />
+                </span>
+              ) : (
+                <span><HardHat /> Técnico: {tec?.nome}</span>
+              )}
               <span><CalendarDays /> {fmt(v.data)}</span>
             </div>
           </div>
@@ -118,8 +136,8 @@ export default function VisitaPage() {
       {v.status === 'devolvida' && v.devolucao && (
         <div className="alert red mt-3"><b>Devolvida por {db.users.find((u) => u.id === v.devolucao!.por)?.nome} em {fmtDateTime(v.devolucao.em)}:</b> {v.devolucao.motivo}</div>
       )}
-      {v.status === 'enviada' && <div className="info mt-3">Enviada em {fmtDateTime(v.enviadaEm)}. Aguardando aprovação da coordenação; os documentos ficam em modo leitura.</div>}
-      {v.status === 'aprovada' && <div className="info mt-3">Aprovada em {fmtDateTime(v.aprovadaEm)}. Documentos em modo leitura.</div>}
+      {v.status === 'enviada' && <div className="info mt-3">Enviada em {fmtDateTime(v.enviadaEm)}. Aguardando aprovação da coordenação.</div>}
+      {v.status === 'aprovada' && <div className="info mt-3">Aprovada em {fmtDateTime(v.aprovadaEm)}.</div>}
 
       {!doc ? (
         <>
@@ -214,7 +232,7 @@ export default function VisitaPage() {
         title="Devolver visita para ajuste"
         footer={<><button className="btn ghost" onClick={() => setDevolver(false)}>Cancelar</button><button className="btn pri" onClick={confirmarDevolucao}>Devolver ao técnico</button></>}
       >
-        <Field label="O que precisa ser ajustado?" req hint="O técnico vê este texto no painel e na visita.">
+        <Field label="O que precisa ser ajustado?" req>
           <textarea id="dev-motivo" className="field min-h-[100px]" value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Ex.: refazer a foto vertical da fachada; faltam 2 termos de imagem." />
         </Field>
       </Modal>

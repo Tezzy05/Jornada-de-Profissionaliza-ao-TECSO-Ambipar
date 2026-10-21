@@ -17,13 +17,12 @@ export default function AceleracaoPage() {
 
   return (
     <div>
-      <PageHead crumbs="Programas" title="Programa de Aceleração" sub="Jornada de profissionalização de cada cooperativa, do produto 1 ao 5. A integração precisa estar completa antes de seguir com a cooperativa." />
+      <PageHead crumbs="Programas" title="Programa de Aceleração" />
 
       <div className="grid gap-3 grid-cols-2 xl:grid-cols-5 mb-4">
         {PRODUTOS.map((p, i) => (
           <div key={p.k} className="card p-4">
-            <span className="lbl">Produto {p.n}</span>
-            <b className="block font-display text-[13.5px] leading-tight mt-1 mb-2 min-h-[34px]">{p.t}</b>
+            <b className="block font-display text-[13.5px] leading-tight mb-2 min-h-[34px]">{p.t}</b>
             <div className="flex items-baseline gap-1.5"><b className="text-[24px] font-display font-extrabold tnum">{i >= 3 ? linhas.filter((l) => l.e[i].estado !== 'todo' && l.e[i].estado !== 'lock').length : cont(i)}</b><span className="muted text-[12px]">de {linhas.length} {i >= 3 ? 'em andamento' : 'concluídas'}</span></div>
           </div>
         ))}
@@ -38,7 +37,7 @@ export default function AceleracaoPage() {
               <thead>
                 <tr>
                   <th>Cooperativa</th><th>Técnico</th>
-                  {PRODUTOS.map((p) => <th key={p.k} title={p.t}>P{p.n}</th>)}
+                  {PRODUTOS.map((p) => <th key={p.k} title={p.t}>{p.c}</th>)}
                   <th />
                 </tr>
               </thead>

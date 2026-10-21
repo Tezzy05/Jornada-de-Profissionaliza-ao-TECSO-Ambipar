@@ -86,7 +86,7 @@ export default function NovoItemModal({ open, init, onClose }: { open: boolean; 
         <Field label="Início" req><input id="ni-ini" type="time" className="field" value={f.ini} onChange={(e) => setF({ ...f, ini: e.target.value })} /></Field>
         <Field label="Fim" req><input id="ni-fim" type="time" className="field" value={f.fim} onChange={(e) => setF({ ...f, fim: e.target.value })} /></Field>
       </div>
-      {(comGrupo || f.tipo === 'Capacitação online (P5)') && (
+      {(comGrupo || f.tipo === 'Capacitação online') && (
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Projeto" req={f.tipo === 'Ação Cidades Circular'}>
             <select id="ni-proj" className="field" value={f.projetoId} onChange={(e) => setF({ ...f, projetoId: e.target.value, coopId: '' })}>

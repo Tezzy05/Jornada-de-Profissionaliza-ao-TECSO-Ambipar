@@ -83,8 +83,20 @@ export const useDB = create<Store>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => localStorage),
+      // Atualiza dados salvos por versões anteriores do protótipo
+      migrate: (persisted, version) => {
+        const s = persisted as DB & Session;
+        if (version < 2 && s && Array.isArray(s.crono)) {
+          const tipos: Record<string, string> = { 'Mentoria online (P2)': 'Mentoria online', 'Suporte contínuo (P4)': 'Suporte contínuo', 'Capacitação online (P5)': 'Capacitação online' };
+          s.crono.forEach((c) => { if (tipos[c.tipo]) c.tipo = tipos[c.tipo] as typeof c.tipo; });
+          const me = s.mentorias?.find((m) => m.id === 'me_vida');
+          if (me && !me.fotos.includes('asset:mentoria-vida-nova')) me.fotos = ['asset:mentoria-vida-nova', ...me.fotos.filter((f) => !f.startsWith('seed:'))];
+          s.users?.forEach((u) => { if ((u.perfil === 'coord' || u.perfil === 'adm') && !u.perms.includes('aceleracao.responsaveis')) u.perms.push('aceleracao.responsaveis'); });
+        }
+        return s;
+      },
       partialize: ({ mut, log, login, loginAs, logout, resetDemo, ...rest }) => rest,
     },
   ),

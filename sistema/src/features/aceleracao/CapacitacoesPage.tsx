@@ -9,6 +9,7 @@ import { capturarFoto } from '@/lib/upload';
 import { Empty, Field, MediaThumb, Modal, PageHead, toast } from '@/components/ui';
 import type { Capacitacao } from '@/lib/types';
 import { naAceleracao } from './logic';
+import { TecnicoSelect, trocarResponsavel } from '@/components/TecnicoSelect';
 
 export default function CapacitacoesPage() {
   const db = useDB();
@@ -31,7 +32,7 @@ export default function CapacitacoesPage() {
 
   return (
     <div>
-      <PageHead crumbs="Programas · Produto 5" title="Capacitações online" sub="Treinamentos para várias cooperativas juntas, ao menos uma vez por mês.">
+      <PageHead crumbs="Programas · Programa de Aceleração" title="Capacitações online">
         {gere && <button className="btn pri" onClick={() => setAgendar(true)}><Plus /> Agendar capacitação</button>}
       </PageHead>
 
@@ -46,7 +47,27 @@ export default function CapacitacoesPage() {
                 <div className="flex justify-between gap-3 flex-wrap items-start">
                   <div>
                     <b className="font-display text-[15px]">{c.tema}</b>
-                    <div className="muted text-[12.5px]">{fmt(c.data)} · {c.ini}–{c.fim} · Facilitação: {fac?.nome}</div>
+                    <div className="muted text-[12.5px] flex items-center gap-1.5 flex-wrap">
+                      {fmt(c.data)} · {c.ini}–{c.fim} · Facilitação:
+                      {gere && c.status === 'Agendada' ? (
+                        <TecnicoSelect
+                          incluirCoord
+                          className="!py-0.5 !px-2 !w-auto !text-[12.5px]"
+                          value={c.facilitadorId}
+                          onChange={(id) => {
+                            db.mut((d) => {
+                              d.capacitacoes.find((x) => x.id === c.id)!.facilitadorId = id;
+                              d.crono.forEach((it) => {
+                                if (it.tipo === 'Capacitação online' && it.data === c.data && it.ini === c.ini && it.obs === c.tema) it.tecnicoId = id;
+                              });
+                            });
+                            trocarResponsavel(id, undefined, `a capacitação "${c.tema}"`);
+                          }}
+                        />
+                      ) : (
+                        fac?.nome
+                      )}
+                    </div>
                   </div>
                   <span className={cn('tag', c.status === 'Realizada' ? 'ok' : c.status === 'Agendada' ? 'blue' : 'red')}>{c.status}</span>
                 </div>
@@ -81,7 +102,7 @@ export default function CapacitacoesPage() {
         </div>
 
         <div className="card self-start">
-          <div className="pad pb-2"><h3 className="text-[15px] font-bold m-0">Meta: 1 capacitação por mês</h3><p className="muted text-[12.5px]">Participação de cada cooperativa nos últimos 3 meses.</p></div>
+          <div className="pad pb-2"><h3 className="text-[15px] font-bold m-0">Meta: 1 capacitação por mês</h3></div>
           <div className="tbl-wrap">
             <table>
               <thead><tr><th>Cooperativa</th>{meses.map((m) => <th key={m}>{MES[+m.slice(5) - 1]}</th>)}</tr></thead>
@@ -132,7 +153,7 @@ function AgendarModal({ open, coopsIds, onClose }: { open: boolean; coopsIds: st
     db.mut((d) => {
       d.capacitacoes.push(c);
       const fac = d.users.find((u) => u.id === f.facilitadorId);
-      if (fac?.perfil === 'tecnico') d.crono.push({ id: 'cr_' + uid(), tecnicoId: fac.id, data: f.data, ini: f.ini, fim: f.fim, tipo: 'Capacitação online (P5)', status: 'Planejado', obs: f.tema, projetoId: d.projetos.find((p) => p.tipo === 'aceleracao')?.id });
+      if (fac?.perfil === 'tecnico') d.crono.push({ id: 'cr_' + uid(), tecnicoId: fac.id, data: f.data, ini: f.ini, fim: f.fim, tipo: 'Capacitação online', status: 'Planejado', obs: f.tema, projetoId: d.projetos.find((p) => p.tipo === 'aceleracao')?.id });
     });
     toast(`Capacitação agendada para ${fmtShort(f.data)}`);
     onClose();
@@ -191,7 +212,6 @@ function RegistrarModal({ id, onClose }: { id: string | null; onClose: () => voi
   };
   return (
     <Modal open={!!id} onClose={onClose} title={`Presença · ${c.tema}`} footer={<><button className="btn ghost" onClick={onClose}>Cancelar</button><button className="btn pri" onClick={salvar}>Salvar como realizada</button></>}>
-      <p className="muted text-[13px]">Informe quantas pessoas de cada cooperativa participaram. Zero conta como ausência.</p>
       <div className="grid gap-2">
         {c.coops.map((x) => (
           <div key={x} className="flex items-center justify-between gap-3">

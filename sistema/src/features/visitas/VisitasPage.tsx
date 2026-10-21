@@ -65,7 +65,7 @@ export default function VisitasPage() {
       <PageHead
         crumbs="Operação"
         title={preenche && !verTodas ? 'Minhas visitas DCO' : 'Visitas DCO'}
-        sub="Diagnóstico de Capacidade Operacional. Continue um rascunho, consulte as visitas enviadas ou inicie uma nova."
+        sub="Diagnóstico de Capacidade Operacional"
       >
         {preenche && (
           <button className="btn pri" onClick={() => setNova(true)}><Plus /> Nova visita</button>
@@ -88,7 +88,7 @@ export default function VisitasPage() {
 
       {lista.length === 0 ? (
         <div className="card">
-          <Empty icon={<ClipboardCheck />} title={aba === 'aprovar' ? 'Nenhuma visita aguardando aprovação' : 'Nenhuma visita aqui'} text={aba === 'abertas' ? 'Inicie uma visita pelo botão "Nova visita" ou clicando num item "Visita DCO" do cronograma.' : undefined}>
+          <Empty icon={<ClipboardCheck />} title={aba === 'aprovar' ? 'Nenhuma visita aguardando aprovação' : 'Nenhuma visita aqui'}>
             {aba === 'abertas' && preenche && <button className="btn pri" onClick={() => setNova(true)}><Plus /> Nova visita</button>}
           </Empty>
         </div>
@@ -176,7 +176,7 @@ function NovaVisitaModal({ open, onClose }: { open: boolean; onClose: () => void
         </>
       }
     >
-      <Field label="Cooperativa" req hint="Aparecem só as cooperativas dos projetos em que você está vinculado.">
+      <Field label="Cooperativa" req>
         <select id="nv-coop" className="field" value={coopId} onChange={(e) => { setCoopId(e.target.value); setCronoId(''); setEndereco('Matriz'); }}>
           <option value="">Escolher</option>
           {coops.map((c) => (

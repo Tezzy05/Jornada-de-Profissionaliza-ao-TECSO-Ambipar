@@ -36,6 +36,7 @@ export const PERM_GRUPOS: { grupo: string; itens: { k: PermKey; t: string; d?: s
       { k: 'aceleracao.editar', t: 'Registrar mentorias, suporte e plano de ação' },
       { k: 'integracao.checklist', t: 'Marcar o checklist de integração (Impacta+)' },
       { k: 'capacitacoes.gerir', t: 'Agendar capacitações online e registrar presença' },
+      { k: 'aceleracao.responsaveis', t: 'Trocar o técnico responsável (cooperativas, mentorias, atendimentos, visitas e cronograma)' },
     ],
   },
   {
@@ -76,7 +77,7 @@ export const TEMPLATES: Record<PerfilBase, PermKey[]> = {
   coord: [
     'painel.ver', 'crono.proprio', 'crono.todos', 'crono.editarTodos', 'visitas.verTodas', 'visitas.aprovar',
     'dados.eixo8', 'dados.cpf', 'termos.modelo',
-    'aceleracao.ver', 'aceleracao.editar', 'integracao.checklist', 'capacitacoes.gerir',
+    'aceleracao.ver', 'aceleracao.editar', 'integracao.checklist', 'capacitacoes.gerir', 'aceleracao.responsaveis',
     'cidades.ver', 'cidades.atualizarProprias', 'cidades.gerir', 'projetos.todos',
     'coop.historico', 'coop.exportar', 'grupos.cadastrar',
   ],

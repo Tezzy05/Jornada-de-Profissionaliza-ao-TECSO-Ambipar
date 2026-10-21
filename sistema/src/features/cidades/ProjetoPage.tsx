@@ -11,7 +11,8 @@ import { Avatar, Bar, confirmar, Empty, Field, Modal, toast } from '@/components
 import type { Agente, Tarefa, TipoAgente } from '@/lib/types';
 import { cmpCodigo, PRIO_CLS, SIT_CLS, situacaoPrazo, STATUS_CLS, STATUS_TAREFA, type SituacaoPrazo } from './constants';
 import { progresso, respLabel, resumoProjeto } from './logic';
-import { exportarProjeto } from './shared';
+import { exportarProjeto, RespSelect } from './shared';
+import { trocarResponsavel } from '@/components/TecnicoSelect';
 import TarefaDrawer, { NovaTarefaModal } from './TarefaDrawer';
 
 type Aba = 'estrutura' | 'lista' | 'responsaveis';
@@ -113,7 +114,7 @@ export default function ProjetoPage() {
 
       {aba === 'estrutura' && (
         <div className="grid gap-3">
-          {tops.length === 0 && <div className="card"><Empty title="Nenhum tópico ainda" text="Crie os tópicos do macro projeto (por exemplo: Diagnóstico, Estruturação, Capacitação) e depois as subtarefas de cada um." /></div>}
+          {tops.length === 0 && <div className="card"><Empty title="Nenhum tópico ainda" /></div>}
           {tops.map((tp) => {
             const doTopico = ts.filter((t) => t.topicoId === tp.id);
             const subs = doTopico.filter((t) => !t.parentId).sort((a, b) => cmpCodigo(a.codigo, b.codigo));
@@ -236,7 +237,7 @@ function TopicoModal({ projetoId, editId, onClose }: { projetoId: string; editId
   };
   return (
     <Modal open={editId !== null} onClose={onClose} title={tp ? 'Renomear tópico' : 'Novo tópico do macro projeto'} footer={<><button className="btn ghost" onClick={onClose}>Cancelar</button><button className="btn pri" onClick={salvar}><Check /> Salvar</button></>}>
-      <Field label="Título" req hint="Ex.: Diagnóstico, Estruturação da cooperativa, Capacitação e mobilização."><input id="tp-titulo" className="field" value={titulo} onChange={(e) => setTitulo(e.target.value)} autoFocus /></Field>
+      <Field label="Título" req><input id="tp-titulo" className="field" value={titulo} onChange={(e) => setTitulo(e.target.value)} autoFocus /></Field>
     </Modal>
   );
 }
@@ -247,13 +248,14 @@ function Responsaveis({ projetoId }: { projetoId: string }) {
   const p = db.projetos.find((x) => x.id === projetoId)!;
   const gere = can(me, 'cidades.gerir');
   const [ag, setAg] = useState<Agente | null>(null);
+  const [transf, setTransf] = useState<string | null>(null);
   const tecs = db.users.filter((u) => u.ativo && u.perfil === 'tecnico');
   const cont = (resp: string) => db.tarefas.filter((t) => t.projetoId === p.id && t.responsavel === resp && t.status !== 'Concluída').length;
 
   return (
     <div className="grid gap-4 xl:grid-cols-2">
       <div className="card">
-        <div className="pad pb-2"><h3 className="text-[15px] font-bold m-0">Técnicos vinculados ao projeto</h3><p className="muted text-[12.5px]">Só os técnicos vinculados enxergam este projeto, suas cooperativas e demandas.</p></div>
+        <div className="pad pb-2"><h3 className="text-[15px] font-bold m-0">Técnicos vinculados ao projeto</h3></div>
         <div className="tbl-wrap">
           <table>
             <tbody>
@@ -263,7 +265,10 @@ function Responsaveis({ projetoId }: { projetoId: string }) {
                 return (
                   <tr key={u.id}>
                     <td><div className="tc"><Avatar u={u} size="sm" />{u.nome}</div></td>
-                    <td className="muted text-[12.5px]">{cont('u:' + u.id)} demandas abertas</td>
+                    <td className="muted text-[12.5px]">
+                      {cont('u:' + u.id)} demandas abertas
+                      {gere && cont('u:' + u.id) > 0 && <button className="btn link xs !flex !px-0 mt-0.5" onClick={() => setTransf('u:' + u.id)}>Transferir</button>}
+                    </td>
                     <td className="text-right">
                       {gere ? (
                         <button
@@ -290,7 +295,7 @@ function Responsaveis({ projetoId }: { projetoId: string }) {
       </div>
       <div className="card">
         <div className="pad pb-2 flex justify-between items-start gap-3">
-          <div><h3 className="text-[15px] font-bold m-0">Responsáveis externos</h3><p className="muted text-[12.5px]">Cliente, cooperativa e prefeitura. Não têm login: a coordenação atualiza as demandas deles.</p></div>
+          <div><h3 className="text-[15px] font-bold m-0">Responsáveis externos</h3></div>
           {gere && <button className="btn pri sm" onClick={() => setAg({ id: '', tipo: 'Cliente', nome: '', organizacao: '', contato: '' })}><Plus /> Incluir</button>}
         </div>
         <div className="tbl-wrap">
@@ -301,7 +306,10 @@ function Responsaveis({ projetoId }: { projetoId: string }) {
                   <td><span className="tag violet">{a.tipo}</span></td>
                   <td><b>{a.nome}</b><div className="muted text-[12px]">{a.organizacao}</div></td>
                   <td className="text-[12.5px] select-all">{a.contato || <span className="text-[var(--danger)]">Sem contato</span>}</td>
-                  <td className="muted text-[12.5px] whitespace-nowrap">{cont('a:' + a.id)} abertas</td>
+                  <td className="muted text-[12.5px] whitespace-nowrap">
+                    {cont('a:' + a.id)} abertas
+                    {gere && cont('a:' + a.id) > 0 && <button className="btn link xs !flex !px-0 mt-0.5" onClick={(e) => { e.stopPropagation(); setTransf('a:' + a.id); }}>Transferir</button>}
+                  </td>
                 </tr>
               ))}
               {p.agentes.length === 0 && <tr><td className="muted">Nenhum responsável externo.</td></tr>}
@@ -310,6 +318,7 @@ function Responsaveis({ projetoId }: { projetoId: string }) {
         </div>
       </div>
       <AgenteModal projetoId={p.id} ag={ag} onClose={() => setAg(null)} />
+      <TransferirModal projetoId={p.id} de={transf} onClose={() => setTransf(null)} />
     </div>
   );
 }
@@ -357,3 +366,54 @@ function AgenteModal({ projetoId, ag, onClose }: { projetoId: string; ag: Agente
   );
 }
 
+
+/** Passa todas as demandas abertas de um responsável para outro (ex.: técnico que saiu do projeto). */
+function TransferirModal({ projetoId, de, onClose }: { projetoId: string; de: string | null; onClose: () => void }) {
+  const db = useDB();
+  const me = useMe()!;
+  const p = db.projetos.find((x) => x.id === projetoId)!;
+  const [para, setPara] = useState('');
+  const [desvincular, setDesvincular] = useState(true);
+  const [k, setK] = useState(de);
+  if (k !== de) {
+    setK(de);
+    setPara('');
+    setDesvincular(true);
+  }
+  if (!de) return null;
+  const abertas = db.tarefas.filter((t) => t.projetoId === p.id && t.responsavel === de && t.status !== 'Concluída');
+  const origem = respLabel(db, de, p.id).nome;
+  const salvar = () => {
+    if (!para || para === de) return toast('Escolha quem vai assumir as demandas', true);
+    const destino = respLabel(db, para, p.id).nome;
+    db.mut((d) => {
+      d.tarefas.forEach((t) => {
+        if (t.projetoId === p.id && t.responsavel === de && t.status !== 'Concluída') {
+          t.responsavel = para;
+          t.comentarios.push({ id: uid(), por: me.id, em: new Date().toISOString(), texto: `Responsável alterado de ${origem} para ${destino}` });
+        }
+      });
+      if (desvincular && de.startsWith('u:')) {
+        const x = d.projetos.find((y) => y.id === p.id)!;
+        if (x.tecnicos.length > 1) x.tecnicos = x.tecnicos.filter((t) => t !== de.slice(2));
+      }
+    });
+    if (para.startsWith('u:')) trocarResponsavel(para.slice(2), p.id, `${abertas.length} demandas de ${origem}`);
+    else toast(`${abertas.length} demandas transferidas para ${destino}`);
+    log('projeto', `${abertas.length} demandas transferidas de ${origem} para ${destino} (${p.nome})`, p.id);
+    onClose();
+  };
+  return (
+    <Modal open={!!de} onClose={onClose} title={`Transferir demandas de ${origem}`} footer={<><button className="btn ghost" onClick={onClose}>Cancelar</button><button className="btn pri" onClick={salvar}>Transferir {abertas.length} demandas</button></>}>
+      <div className="panel max-h-[200px] overflow-auto">
+        {abertas.map((t) => (
+          <div key={t.id} className="flex gap-2 px-3 py-2 border-b last:border-0 border-[var(--line)] text-[13px]"><span className="tnum muted">{p.sigla}-{t.codigo}</span><span className="min-w-0 truncate">{t.demanda}</span></div>
+        ))}
+      </div>
+      <Field label="Novo responsável" req><RespSelect id="tr-para" projeto={p} value={para} onChange={setPara} /></Field>
+      {de.startsWith('u:') && p.tecnicos.includes(de.slice(2)) && (
+        <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" checked={desvincular} onChange={(e) => setDesvincular(e.target.checked)} /> Desvincular {origem} do projeto</label>
+      )}
+    </Modal>
+  );
+}

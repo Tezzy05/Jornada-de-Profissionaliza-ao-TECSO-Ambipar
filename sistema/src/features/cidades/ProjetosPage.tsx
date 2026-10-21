@@ -21,14 +21,13 @@ export default function ProjetosPage() {
       <PageHead
         crumbs="Programas"
         title="Programa Cidades Circular"
-        sub={gere ? 'Cada cliente entra como um novo projeto. O macro projeto aprovado vira tópicos, subtarefas e itens com responsáveis e prazos.' : 'Projetos em que você está vinculado como técnico.'}
       >
         {gere && <button className="btn ghost" onClick={() => baixarModeloMacro()}><FileSpreadsheet /> Baixar modelo Excel</button>}
         {gere && <button className="btn pri" onClick={() => nav('/cidades/novo')}><Plus /> Novo projeto</button>}
       </PageHead>
 
       {projetos.length === 0 ? (
-        <div className="card"><Empty icon={<Building2 />} title="Nenhum projeto Cidades Circular no seu filtro" text={gere ? 'Crie o primeiro projeto pelo botão "Novo projeto".' : 'Quando a coordenação vincular você a um projeto, ele aparece aqui.'} /></div>
+        <div className="card"><Empty icon={<Building2 />} title="Nenhum projeto Cidades Circular no seu filtro" /></div>
       ) : (
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(340px,1fr))]">
           {projetos.map((p) => {

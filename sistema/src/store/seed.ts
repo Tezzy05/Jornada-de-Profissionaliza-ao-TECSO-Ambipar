@@ -1,5 +1,5 @@
 import { addDays, at, mondayOf, today } from '@/lib/dates';
-import { seedId } from '@/lib/media';
+import { assetId, seedId } from '@/lib/media';
 import { TEMPLATES } from '@/lib/permissions';
 import type {
   Agente, Anexo, Atendimento, Capacitacao, Coop, Integracao, ItemCrono, Mentoria, Projeto, StatusCrono, Tarefa, Termo, Topico, Usuario, Visita,
@@ -93,7 +93,7 @@ export function buildSeed(): DB {
         { id: 'pa5', acao: 'Levantar o tamanho de EPIs de todos os cooperados', responsavel: 'Kailane (COOTRAEMPOCAP)', prazo: d(1), status: 'A fazer' },
       ] },
     { id: 'me_vida', coopId: 'c_vida', tecnicoId: 'u_lilian', data: d(-33), modalidade: 'Microsoft Teams', participantes: 'Marlene (presidente), equipe administrativa',
-      pontos: 'Boa organização interna; precisa formalizar a prestação de contas mensal.', fotos: [seedId('h', 'Mentoria online Vida Nova', 4)],
+      pontos: 'Boa organização interna; precisa formalizar a prestação de contas mensal.', fotos: [assetId('mentoria-vida-nova')],
       acoes: [{ id: 'pa6', acao: 'Criar modelo de prestação de contas mensal', responsavel: 'Marlene (Vida Nova)', prazo: d(-10), status: 'Concluída' }] },
     { id: 'me_maos', coopId: 'c_maos', tecnicoId: 'u_geovani', data: d(-40), modalidade: 'Chamada de vídeo no WhatsApp', participantes: 'Josué (presidente)',
       pontos: 'Prensa parada há 2 meses; dificuldade com comprador de papelão.', fotos: [seedId('h', 'Mentoria online Mãos Unidas', 5)],
@@ -226,34 +226,34 @@ export function buildSeed(): DB {
   };
   const crono: ItemCrono[] = [
     // Yuri
-    cr('u_yuri', d(-6), '09:00', '11:00', 'Suporte contínuo (P4)', { coopId: 'c_acambb', projetoId: 'p_acel' }),
-    cr('u_yuri', d(-5), '14:00', '16:00', 'Capacitação online (P5)', { projetoId: 'p_acel', obs: 'Apoio na capacitação de gestão financeira' }),
+    cr('u_yuri', d(-6), '09:00', '11:00', 'Suporte contínuo', { coopId: 'c_acambb', projetoId: 'p_acel' }),
+    cr('u_yuri', d(-5), '14:00', '16:00', 'Capacitação online', { projetoId: 'p_acel', obs: 'Apoio na capacitação de gestão financeira' }),
     cr('u_yuri', d(-4), '08:00', '12:00', 'Visita DCO', { id: 'cr_y1', coopId: 'c_acambb', projetoId: 'p_acel', endereco: 'Matriz', visitaId: 'v_acambb' }),
     cr('u_yuri', d(0), '09:00', '12:00', 'Atividade interna', { obs: 'Revisão dos registros da ACAMBB' }),
-    cr('u_yuri', d(1), '14:00', '16:00', 'Suporte contínuo (P4)', { coopId: 'c_acambb', projetoId: 'p_acel', obs: 'Acompanhar planilha de produção' }),
+    cr('u_yuri', d(1), '14:00', '16:00', 'Suporte contínuo', { coopId: 'c_acambb', projetoId: 'p_acel', obs: 'Acompanhar planilha de produção' }),
     cr('u_yuri', d(2), '08:00', '12:00', 'Retorno ao grupo', { coopId: 'c_acambb', projetoId: 'p_acel', endereco: 'Matriz', obs: 'Coletar 5 termos pendentes e fotos que faltam' }),
     cr('u_yuri', d(3), '13:30', '17:00', 'Atividade interna', { obs: 'Consolidar o Relatório de Campo da ACAMBB' }),
     cr('u_yuri', d(4), '09:00', '11:00', 'Deslocamento', { obs: 'Ida ao galpão da Rede Candanga' }),
-    cr('u_yuri', d(8), '09:00', '12:00', 'Suporte contínuo (P4)', { coopId: 'c_acambb', projetoId: 'p_acel' }),
-    cr('u_yuri', d(9), '14:00', '16:00', 'Capacitação online (P5)', { projetoId: 'p_acel', obs: 'Comercialização e negociação' }),
+    cr('u_yuri', d(8), '09:00', '12:00', 'Suporte contínuo', { coopId: 'c_acambb', projetoId: 'p_acel' }),
+    cr('u_yuri', d(9), '14:00', '16:00', 'Capacitação online', { projetoId: 'p_acel', obs: 'Comercialização e negociação' }),
     // Lilian
     cr('u_lilian', d(-7), '08:00', '12:00', 'Visita DCO', { coopId: 'c_vida', projetoId: 'p_acel', endereco: 'Matriz', visitaId: 'v_vida' }),
     cr('u_lilian', d(-5), '09:00', '12:00', 'Visita DCO', { coopId: 'c_cootra', projetoId: 'p_acel', endereco: 'Matriz', status: 'Reagendado', obs: 'Grupo sem operação no dia; remarcado para sexta desta semana' }),
-    cr('u_lilian', d(-5), '14:00', '16:00', 'Capacitação online (P5)', { projetoId: 'p_acel', obs: 'Facilitadora: Gestão financeira' }),
+    cr('u_lilian', d(-5), '14:00', '16:00', 'Capacitação online', { projetoId: 'p_acel', obs: 'Facilitadora: Gestão financeira' }),
     cr('u_lilian', d(0), '14:00', '16:00', 'Ação Cidades Circular', { projetoId: 'p_lzn', coopId: 'c_luziania', obs: 'Reunião com a Secretaria de Meio Ambiente de Luziânia' }),
-    cr('u_lilian', d(1), '09:00', '11:00', 'Mentoria online (P2)', { coopId: 'c_cootra', projetoId: 'p_acel', obs: 'Retomar o plano de ação antes da visita' }),
-    cr('u_lilian', d(2), '14:00', '16:00', 'Suporte contínuo (P4)', { coopId: 'c_vida', projetoId: 'p_acel' }),
+    cr('u_lilian', d(1), '09:00', '11:00', 'Mentoria online', { coopId: 'c_cootra', projetoId: 'p_acel', obs: 'Retomar o plano de ação antes da visita' }),
+    cr('u_lilian', d(2), '14:00', '16:00', 'Suporte contínuo', { coopId: 'c_vida', projetoId: 'p_acel' }),
     cr('u_lilian', d(4), '09:00', '12:30', 'Visita DCO', { id: 'cr_cootra', coopId: 'c_cootra', projetoId: 'p_acel', endereco: 'Matriz', obs: 'Visita remarcada' }),
     cr('u_lilian', d(7), '09:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_lzn', coopId: 'c_luziania', obs: 'Diagnóstico da Assoc. Luziânia Recicla' }),
     // Geovani
     cr('u_geovani', d(-6), '08:30', '10:00', 'Deslocamento', {}),
-    cr('u_geovani', d(-6), '10:00', '13:00', 'Suporte contínuo (P4)', { coopId: 'c_maos', projetoId: 'p_acel' }),
+    cr('u_geovani', d(-6), '10:00', '13:00', 'Suporte contínuo', { coopId: 'c_maos', projetoId: 'p_acel' }),
     cr('u_geovani', d(-3), '09:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_anp', coopId: 'c_anapolis', obs: 'Levantamento de rotas com a prefeitura' }),
     cr('u_geovani', d(0), '14:00', '16:00', 'Atividade interna', { status: 'Confirmado', obs: 'Concluir integração do Grupo Recicla Norte (WhatsApp e Impacta+)' }),
     cr('u_geovani', d(2), '09:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_anp', coopId: 'c_anapolis', obs: 'Medição do galpão para o novo layout' }),
     cr('u_geovani', d(3), '09:00', '12:00', 'Visita DCO', { id: 'cr_recicla', coopId: 'c_recicla', projetoId: 'p_acel', endereco: 'Matriz', obs: 'Depende da integração completa' }),
-    cr('u_geovani', d(4), '14:00', '16:00', 'Suporte contínuo (P4)', { coopId: 'c_maos', projetoId: 'p_acel' }),
-    cr('u_geovani', d(8), '09:00', '12:00', 'Suporte contínuo (P4)', { coopId: 'c_maos', projetoId: 'p_acel' }),
+    cr('u_geovani', d(4), '14:00', '16:00', 'Suporte contínuo', { coopId: 'c_maos', projetoId: 'p_acel' }),
+    cr('u_geovani', d(8), '09:00', '12:00', 'Suporte contínuo', { coopId: 'c_maos', projetoId: 'p_acel' }),
     // Tacianne
     cr('u_tacianne', d(-6), '10:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_anp', obs: 'Reunião de abertura com o Cliente Alfa' }),
     cr('u_tacianne', d(-4), '08:00', '17:00', 'Ação Cidades Circular', { projetoId: 'p_anp', coopId: 'c_anapolis', obs: 'Diagnóstico inicial da cooperativa' }),

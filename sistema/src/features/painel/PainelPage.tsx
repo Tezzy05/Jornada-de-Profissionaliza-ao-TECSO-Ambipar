@@ -116,12 +116,12 @@ export default function PainelPage() {
       <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
         <div className="card kpi"><span>{gestor ? 'Itens no cronograma da semana' : 'Meus itens na semana'}</span><b>{gestor ? semana.length : minhaSemana.length}</b><Bar v={and.pct} /><small className="muted">{and.feitos} concluídos</small></div>
         <div className="card kpi"><span>{gestor ? 'Visitas aguardando aprovação' : 'Visitas em aberto'}</span><b>{gestor ? aprovar.length : rascunhos.length}</b><small className="muted">{gestor ? 'Enviadas pelos técnicos' : 'Rascunhos e devolvidas'}</small></div>
-        <div className="card kpi"><span>Integrações pendentes</span><b style={{ color: integPend.length ? 'var(--warn)' : undefined }}>{integPend.length}</b><small className="muted">Checklist antes de seguir com a cooperativa</small></div>
+        <div className="card kpi"><span>Integrações pendentes</span><b style={{ color: integPend.length ? 'var(--warn)' : undefined }}>{integPend.length}</b><small className="muted">Cooperativas com checklist incompleto</small></div>
         <div className="card kpi"><span>{gestor ? 'Demandas atrasadas (Cidades Circular)' : 'Minhas demandas abertas'}</span><b style={{ color: gestor && atrasadasCidades.length ? 'var(--danger)' : undefined }}>{gestor ? atrasadasCidades.length : minhasDemandas.length}</b><small className="muted">{gestor ? `${projCidades.length} projetos ativos` : `${minhasDemandas.filter((t) => situacaoPrazo(t) === 'Atrasada').length} atrasadas`}</small></div>
       </div>
 
       {integPend.length > 0 && can(me, 'aceleracao.ver') && (
-        <Section title={<span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-[var(--warn)]" /> Checklist de integração pendente</span>} action={<span className="muted text-[12px]">Sem a integração completa, a mentoria e a visita DCO ficam bloqueadas</span>}>
+        <Section title={<span className="flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-[var(--warn)]" /> Checklist de integração pendente</span>}>
           <div className="tbl-wrap">
             <table>
               <tbody>
@@ -258,7 +258,7 @@ export default function PainelPage() {
         </Section>
       )}
 
-      <Section title={<span className="flex items-center gap-2"><Users className="w-4 h-4" /> Fluxo das visitas DCO</span>} action={<span className="muted text-[12px]">{gestor ? 'Todas as visitas do filtro atual' : 'Somente as suas visitas'} · envio liberado só com o checklist de entrega completo</span>}>
+      <Section title={<span className="flex items-center gap-2"><Users className="w-4 h-4" /> Fluxo das visitas DCO</span>}>
         <div className="px-5 pb-5">
           <div className="pipe">
             {cols.map((c) => (

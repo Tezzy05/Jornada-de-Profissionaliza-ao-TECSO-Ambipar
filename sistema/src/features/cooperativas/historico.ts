@@ -48,23 +48,23 @@ export function acoesDaCooperativa(db: DB, coopId: string, me: Usuario): Acao[] 
   const ig = db.integracoes.find((i) => i.coopId === coopId);
   INTEGRACAO_ITENS.forEach((it) => {
     const r = ig?.itens[it.k];
-    if (r?.ok) out.push({ data: dIso(r.em), hora: hm(r.em), programa: PA, etapa: 'P1 · Integração', acao: it.t, responsavel: nome(r.por), status: 'Concluído', detalhes: 'Checklist de integração', fotos: [] });
+    if (r?.ok) out.push({ data: dIso(r.em), hora: hm(r.em), programa: PA, etapa: 'Integração', acao: it.t, responsavel: nome(r.por), status: 'Concluído', detalhes: 'Checklist de integração', fotos: [] });
   });
 
   // P2 mentorias e ações do plano
   db.mentorias.filter((m) => m.coopId === coopId).forEach((m) => {
-    const pasta = `02_Plano_de_Acao/${m.data}_Mentoria_online`;
+    const pasta = `Plano_de_Acao/${m.data}_Mentoria_online`;
     out.push({
-      data: m.data, hora: '', programa: PA, etapa: 'P2 · Plano de Ação Online', acao: `Mentoria online (${m.modalidade})`, responsavel: nome(m.tecnicoId), status: 'Realizada',
+      data: m.data, hora: '', programa: PA, etapa: 'Plano de Ação Online', acao: `Mentoria online (${m.modalidade})`, responsavel: nome(m.tecnicoId), status: 'Realizada',
       detalhes: `Participantes: ${m.participantes}. Pontos: ${m.pontos}`,
       fotos: m.fotos.map((f, i) => ({ mediaId: f, pasta, arquivo: `foto_${pad(i + 1)}`, descricao: `Mentoria online de ${fmt(m.data)}` })),
     });
-    m.acoes.forEach((a) => out.push({ data: m.data, hora: '', programa: PA, etapa: 'P2 · Plano de Ação Online', acao: `Ação do plano: ${a.acao}`, responsavel: a.responsavel, status: a.status, detalhes: `Prazo ${fmt(a.prazo)}`, fotos: [] }));
+    m.acoes.forEach((a) => out.push({ data: m.data, hora: '', programa: PA, etapa: 'Plano de Ação Online', acao: `Ação do plano: ${a.acao}`, responsavel: a.responsavel, status: a.status, detalhes: `Prazo ${fmt(a.prazo)}`, fotos: [] }));
   });
 
   // P3 visitas DCO
   db.visitas.filter((v) => v.coopId === coopId).forEach((v) => {
-    const base = `03_DCO/${v.data}_Visita_${v.endereco}`;
+    const base = `DCO/${v.data}_Visita_${v.endereco}`;
     const fotos: FotoRef[] = [];
     v.ph.forEach((c, i) => {
       const nomeCena = `Cena_${pad(i + 1)}_${slug(CENAS[i][0])}`;
@@ -81,32 +81,32 @@ export function acoesDaCooperativa(db: DB, coopId: string, me: Usuario): Acao[] 
     v.eq.forEach((q, i) => q.foto && fotos.push({ mediaId: q.foto.id, pasta: `${base}/Equipamentos`, arquivo: `${pad(i + 1)}_${slug(q.tipo)}`, descricao: `${q.tipo} × ${q.qtd} · ${q.esp}` }));
     v.termos.forEach((t) => t.anexo && t.anexo.mime.startsWith('image/') && fotos.push({ mediaId: t.anexo.mediaId, pasta: `${base}/Termos_em_papel`, arquivo: slug(t.nome), descricao: `Termo de imagem · ${t.nome}` }));
     out.push({
-      data: v.data, hora: hm(v.criadaEm), programa: PA, etapa: 'P3 · DCO', acao: 'Visita de campo · Diagnóstico de Capacidade Operacional', responsavel: nome(v.tecnicoId),
+      data: v.data, hora: hm(v.criadaEm), programa: PA, etapa: 'DCO', acao: 'Visita de campo · Diagnóstico de Capacidade Operacional', responsavel: nome(v.tecnicoId),
       status: STATUS_VISITA[v.status].t, detalhes: `${visitaPct(v)}% preenchido · ${termosOk(v)}/${v.termos.length} termos · ${v.eq.length} equipamentos${v.capAno ? ` · capacidade ${v.capAno} t/ano` : ''}`, fotos,
     });
     if (v.plano.enviadoEm)
-      out.push({ data: dIso(v.plano.enviadoEm), hora: hm(v.plano.enviadoEm), programa: PA, etapa: 'P3 · DCO', acao: 'Entrega do plano de ação', responsavel: nome(v.plano.enviadoPor), status: 'Envio confirmado', detalhes: `Para ${v.plano.destinatario} · ${v.plano.anexo?.nome ?? ''}`, fotos: [] });
+      out.push({ data: dIso(v.plano.enviadoEm), hora: hm(v.plano.enviadoEm), programa: PA, etapa: 'DCO', acao: 'Entrega do plano de ação', responsavel: nome(v.plano.enviadoPor), status: 'Envio confirmado', detalhes: `Para ${v.plano.destinatario} · ${v.plano.anexo?.nome ?? ''}`, fotos: [] });
     v.hist.filter((h) => /Enviada|Aprovada|Devolvida/.test(h.acao)).forEach((h) =>
-      out.push({ data: dIso(h.em), hora: hm(h.em), programa: PA, etapa: 'P3 · DCO', acao: h.acao, responsavel: nome(h.por), status: h.acao, detalhes: h.detalhe ?? '', fotos: [] }),
+      out.push({ data: dIso(h.em), hora: hm(h.em), programa: PA, etapa: 'DCO', acao: h.acao, responsavel: nome(h.por), status: h.acao, detalhes: h.detalhe ?? '', fotos: [] }),
     );
   });
 
   // P4 suporte
   db.atendimentos.filter((a) => a.coopId === coopId).forEach((a) =>
     out.push({
-      data: a.data, hora: '', programa: PA, etapa: 'P4 · Suporte contínuo', acao: `Atendimento: ${a.tema}`, responsavel: nome(a.tecnicoId), status: 'Realizado',
+      data: a.data, hora: '', programa: PA, etapa: 'Suporte contínuo', acao: `Atendimento: ${a.tema}`, responsavel: nome(a.tecnicoId), status: 'Realizado',
       detalhes: `${a.canal} · ${a.resumo}${a.encaminhamento ? ` → ${a.encaminhamento}` : ''}`,
-      fotos: a.fotos.map((f, i) => ({ mediaId: f, pasta: `04_Suporte_continuo/${a.data}_${slug(a.tema)}`, arquivo: `foto_${pad(i + 1)}`, descricao: `Suporte · ${a.tema}` })),
+      fotos: a.fotos.map((f, i) => ({ mediaId: f, pasta: `Suporte_continuo/${a.data}_${slug(a.tema)}`, arquivo: `foto_${pad(i + 1)}`, descricao: `Suporte · ${a.tema}` })),
     }),
   );
 
   // P5 capacitações
   db.capacitacoes.filter((c) => c.coops.includes(coopId)).forEach((c) =>
     out.push({
-      data: c.data, hora: c.ini, programa: PA, etapa: 'P5 · Capacitações online', acao: `Capacitação: ${c.tema}`, responsavel: nome(c.facilitadorId),
+      data: c.data, hora: c.ini, programa: PA, etapa: 'Capacitações online', acao: `Capacitação: ${c.tema}`, responsavel: nome(c.facilitadorId),
       status: c.status === 'Realizada' ? ((c.presencas[coopId] ?? 0) > 0 ? 'Participou' : 'Ausente') : c.status,
       detalhes: c.status === 'Realizada' ? `${c.presencas[coopId] ?? 0} participantes da cooperativa` : 'Convidada',
-      fotos: c.status === 'Realizada' && (c.presencas[coopId] ?? 0) > 0 ? c.fotos.map((f, i) => ({ mediaId: f, pasta: `05_Capacitacoes/${c.data}_${slug(c.tema)}`, arquivo: `foto_${pad(i + 1)}`, descricao: `Capacitação · ${c.tema}` })) : [],
+      fotos: c.status === 'Realizada' && (c.presencas[coopId] ?? 0) > 0 ? c.fotos.map((f, i) => ({ mediaId: f, pasta: `Capacitacoes/${c.data}_${slug(c.tema)}`, arquivo: `foto_${pad(i + 1)}`, descricao: `Capacitação · ${c.tema}` })) : [],
     }),
   );
 
@@ -129,13 +129,15 @@ export function acoesDaCooperativa(db: DB, coopId: string, me: Usuario): Acao[] 
   return out.sort((a, b) => (b.data + b.hora).localeCompare(a.data + a.hora));
 }
 
-/** ZIP com todas as fotos da jornada, organizadas em pastas por etapa. */
-export async function baixarZipFotos(db: DB, coopId: string, acoes: Acao[], onProgress?: (n: number, total: number) => void) {
+export type FotoDaAcao = FotoRef & { data: string; acao: string };
+
+export const fotosDasAcoes = (acoes: Acao[]): FotoDaAcao[] => acoes.flatMap((a) => a.fotos.map((f) => ({ ...f, data: a.data, acao: a.acao })));
+
+/** ZIP com as fotos escolhidas (todas da jornada ou só as de uma ação), organizadas em pastas por etapa. */
+export async function baixarZipFotos(db: DB, coopId: string, fotos: FotoDaAcao[], sufixo = 'fotos_jornada', onProgress?: (n: number, total: number) => void) {
   const coop = db.coops.find((c) => c.id === coopId)!;
   const zip = new JSZip();
-  const raiz = zip.folder(`${slug(coop.nome)}_fotos_da_jornada`)!;
-  const fotos = acoes.flatMap((a) => a.fotos.map((f) => ({ ...f, data: a.data, acao: a.acao })));
-  const indice = ['Pasta;Arquivo;Descrição;Data da ação;Ação'];
+  const raiz = zip.folder(`${slug(coop.nome)}_${sufixo}`)!;
   let n = 0;
   for (const f of fotos) {
     const b = await getMediaBlob(f.mediaId);
@@ -143,17 +145,10 @@ export async function baixarZipFotos(db: DB, coopId: string, acoes: Acao[], onPr
     onProgress?.(n, fotos.length);
     if (!b) continue;
     const exemplo = f.mediaId.startsWith('seed:');
-    const nome = `${f.arquivo}${exemplo ? '_exemplo' : ''}.${extFromMime(b.type, 'jpg')}`;
-    raiz.file(`${f.pasta}/${nome}`, b);
-    indice.push([f.pasta, nome, f.descricao, fmt(f.data), f.acao].map((x) => `"${String(x).replace(/"/g, '""')}"`).join(';'));
+    raiz.file(`${f.pasta}/${f.arquivo}${exemplo ? '_exemplo' : ''}.${extFromMime(b.type, 'jpg')}`, b);
   }
-  raiz.file('indice_das_fotos.csv', '﻿' + indice.join('\r\n'));
-  raiz.file(
-    'LEIA-ME.txt',
-    `Fotos da jornada da ${coop.nome}\r\nGerado em ${fmtDateTime(new Date().toISOString())} pela Jornada de Profissionalização TECSO.\r\n\r\nPastas: 02 Plano de Ação · 03 DCO (registro fotográfico, análise situacional, equipamentos) · 04 Suporte contínuo · 05 Capacitações · Cidades Circular.\r\nArquivos com "_exemplo" no nome são imagens de demonstração do protótipo.\r\n`,
-  );
   const blob = await zip.generateAsync({ type: 'blob', compression: 'STORE' });
-  saveBlob(blob, `${slug(coop.nome)}_fotos_jornada.zip`);
+  saveBlob(blob, `${slug(coop.nome)}_${sufixo}.zip`);
   return fotos.length;
 }
 
@@ -178,7 +173,7 @@ export async function exportarHistoricoExcel(db: DB, coopId: string, acoes: Acao
           ['Cooperativa', coop.nome], ['Cidade/UF', `${coop.cidade}/${coop.uf}`], ['Endereços', coop.enderecos.map((e) => `${e.tipo}: ${e.end}`).join(' | ')],
           ['Liderança', `${coop.lideranca} · ${coop.contato}`], ['Rede', coop.rede], ['Classificação', coop.classificacao], ['Cooperados ativos', coop.ativos],
           ['Técnico de referência', tec?.nome ?? ''], ['Projetos', projs.map((p) => p.nome).join(' | ')],
-          ...ets.map((e, i) => [`Produto ${i + 1} · ${PRODUTOS[i].t}`, e.estado === 'lock' ? 'Bloqueado (integração incompleta)' : e.resumo] as [string, string]),
+          ...ets.map((e, i) => [PRODUTOS[i].t, e.estado === 'lock' ? 'Bloqueado (integração incompleta)' : e.resumo] as [string, string]),
           ['Total de ações registradas', acoes.length], ['Total de fotos', acoes.reduce((s, a) => s + a.fotos.length, 0)],
           ['Gerado em', fmtDateTime(new Date().toISOString())], ['Gerado por', me.nome],
         ],
@@ -224,11 +219,6 @@ export async function exportarHistoricoExcel(db: DB, coopId: string, acoes: Acao
         nome: 'Capacitações',
         colunas: [{ h: 'Data', w: 12, date: true }, { h: 'Tema', w: 44 }, { h: 'Facilitação', w: 24 }, { h: 'Status', w: 12 }, { h: 'Participantes da cooperativa', w: 22 }],
         linhas: db.capacitacoes.filter((c) => c.coops.includes(coopId)).map((c) => [xd(c.data), c.tema, nome(c.facilitadorId), c.status, c.status === 'Realizada' ? c.presencas[coopId] ?? 0 : '']),
-      },
-      {
-        nome: 'Índice de fotos',
-        colunas: [{ h: 'Pasta no ZIP', w: 60 }, { h: 'Arquivo', w: 40 }, { h: 'Descrição', w: 50 }, { h: 'Data da ação', w: 12, date: true }],
-        linhas: acoes.flatMap((a) => a.fotos.map((f) => [f.pasta, f.arquivo, f.descricao, xd(a.data)])),
       },
     ],
     `Historico_${slug(coop.nome)}.xlsx`,

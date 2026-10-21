@@ -103,7 +103,7 @@ export default function NovoProjetoPage() {
 
   return (
     <div className="max-w-[1100px]">
-      <PageHead crumbs={<><button onClick={() => nav('/cidades')}>Cidades Circular</button> › Novo projeto</>} title="Novo projeto Cidades Circular" sub="Primeiro os dados e os técnicos responsáveis; depois a importação do macro projeto aprovado com o cliente." />
+      <PageHead crumbs={<><button onClick={() => nav('/cidades')}>Cidades Circular</button> › Novo projeto</>} title="Novo projeto Cidades Circular" />
 
       <ol className="grid gap-2 grid-cols-2 lg:grid-cols-4 mb-5">
         {PASSOS.map((t, i) => (
@@ -123,8 +123,8 @@ export default function NovoProjetoPage() {
               <Field label="UF" req><input id="np-uf" className="field" maxLength={2} value={d.uf} onChange={(e) => setD({ ...d, uf: e.target.value.toUpperCase() })} /></Field>
             </div>
             <div className="grid sm:grid-cols-[2fr_1fr] gap-3">
-              <Field label="Nome do projeto" hint={nomeAuto && !d.nome ? `Se ficar em branco: ${nomeAuto}` : undefined}><input id="np-nome" className="field" value={d.nome} placeholder={nomeAuto || 'Cidades Circular · Município/UF'} onChange={(e) => setD({ ...d, nome: e.target.value })} /></Field>
-              <Field label="Sigla (para os IDs)" hint={`Ex.: ${siglaAuto || 'ANP'}-1.2`}><input id="np-sigla" className="field" maxLength={5} value={d.sigla} placeholder={siglaAuto} onChange={(e) => setD({ ...d, sigla: e.target.value.toUpperCase() })} /></Field>
+              <Field label="Nome do projeto"><input id="np-nome" className="field" value={d.nome} placeholder={nomeAuto || 'Cidades Circular · Município/UF'} onChange={(e) => setD({ ...d, nome: e.target.value })} /></Field>
+              <Field label="Sigla (para os IDs)"><input id="np-sigla" className="field" maxLength={5} value={d.sigla} placeholder={siglaAuto} onChange={(e) => setD({ ...d, sigla: e.target.value.toUpperCase() })} /></Field>
             </div>
             <div className="grid sm:grid-cols-2 gap-3">
               <Field label="Início da vigência" req><input id="np-ini" type="date" className="field" value={d.inicio} onChange={(e) => setD({ ...d, inicio: e.target.value })} /></Field>
@@ -148,7 +148,6 @@ export default function NovoProjetoPage() {
           <>
             <div>
               <h3 className="text-[15px] font-bold flex items-center gap-2"><Users className="w-4 h-4" /> Técnicos principais responsáveis pelo projeto <span className="req">Obrig.</span></h3>
-              <p className="muted text-[13px] mt-1">Os técnicos escolhidos aqui passam a ver este projeto, as cooperativas e as demandas dele. Pode ser mais de um.</p>
             </div>
             <div className="grid gap-2 sm:grid-cols-2">
               {tecs.map((u) => {
@@ -165,7 +164,6 @@ export default function NovoProjetoPage() {
             </div>
             <div className="border-t border-[var(--line)] pt-4">
               <h3 className="text-[15px] font-bold">Responsáveis externos <span className="opt">Opcional</span></h3>
-              <p className="muted text-[13px] mt-1">Cliente, cooperativa e prefeitura não têm login: a coordenação atualiza as demandas deles. Também podem ser criados pela planilha ou depois, no projeto.</p>
               <div className="grid sm:grid-cols-[140px_1fr_1fr_1fr_auto] gap-2 mt-3 items-end">
                 <Field label="Tipo"><select id="ag-tipo" className="field" value={novoAg.tipo} onChange={(e) => setNovoAg({ ...novoAg, tipo: e.target.value as TipoAgente })}><option>Cliente</option><option>Cooperativa</option><option>Prefeitura</option></select></Field>
                 <Field label="Nome" req><input id="ag-nome" className="field" value={novoAg.nome} onChange={(e) => setNovoAg({ ...novoAg, nome: e.target.value })} /></Field>
@@ -193,7 +191,6 @@ export default function NovoProjetoPage() {
             <div className="grid gap-4 lg:grid-cols-2">
               <div className="panel p-4 grid gap-3 content-start">
                 <h3 className="text-[15px] font-bold flex items-center gap-2"><FileSpreadsheet className="w-4 h-4" /> Planilha do macro projeto (Excel)</h3>
-                <p className="muted text-[13px]">Cada tópico (como "Cozinha" no projeto de uma casa) vira um grupo; dentro dele ficam as subtarefas e, se precisar, um nível de itens. Responsáveis, prazos e detalhes vêm da planilha.</p>
                 <div className="flex gap-2 flex-wrap">
                   <button className="btn pri" onClick={importar} disabled={lendo}><Upload /> {lendo ? 'Lendo…' : imp ? 'Importar outra planilha' : 'Importar planilha'}</button>
                   <button className="btn ghost" onClick={() => baixarModeloMacro()}><FileSpreadsheet /> Baixar modelo</button>
@@ -214,7 +211,6 @@ export default function NovoProjetoPage() {
               </div>
               <div className="panel p-4 grid gap-3 content-start">
                 <h3 className="text-[15px] font-bold flex items-center gap-2"><Paperclip className="w-4 h-4" /> Documento aprovado com o cliente</h3>
-                <p className="muted text-[13px]">Anexe o arquivo original (PDF, Word…) como referência. Ele fica disponível no projeto para consulta.</p>
                 <div className="flex gap-2 items-center flex-wrap">
                   <button className="btn ghost" onClick={async () => { const a = await anexarArquivo(me.id, '.pdf,.doc,.docx,.xlsx,.ppt,.pptx,image/*'); if (a) setDoc(a); }}><Paperclip /> {doc ? 'Trocar documento' : 'Anexar documento'}</button>
                   {doc && <span className="tag ok">{doc.nome}</span>}
@@ -236,7 +232,6 @@ export default function NovoProjetoPage() {
                 </div>
               </div>
             )}
-            {!imp && <p className="muted text-[13px]">Sem planilha? Tudo bem: crie o projeto e monte os tópicos e as subtarefas direto na tela do projeto.</p>}
           </>
         )}
 
