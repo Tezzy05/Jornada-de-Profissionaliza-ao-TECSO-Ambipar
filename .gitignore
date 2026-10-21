@@ -1,3 +1,7 @@
 sistema/node_modules/
 .DS_Store
 *.log
+
+# arquivos locais do plugin Skipper
+.claude/.skipper-*
+.skipper/
