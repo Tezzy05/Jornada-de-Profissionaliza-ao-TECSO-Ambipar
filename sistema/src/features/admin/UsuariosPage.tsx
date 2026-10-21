@@ -22,7 +22,7 @@ export default function UsuariosPage() {
 
   return (
     <div>
-      <PageHead crumbs="Sistema" title="Usuários e acessos" sub="Crie logins a partir de um perfil pré-definido e ajuste cada acesso. Mudanças valem no próximo clique do usuário.">
+      <PageHead crumbs="Sistema" title="Usuários e acessos">
         <button className="btn pri" onClick={() => setEdit(novo())}><Plus /> Novo usuário</button>
       </PageHead>
 
@@ -39,7 +39,6 @@ export default function UsuariosPage() {
       <div className="card">
         <div className="pad flex gap-3 items-center flex-wrap">
           <input id="us-busca" className="field !w-72" placeholder="Buscar por nome ou e-mail" value={busca} onChange={(e) => setBusca(e.target.value)} />
-          <span className="muted text-[12.5px] ml-auto">Dados de exemplo gerados em {fmtDateTime(db.seededAt)}. Antes de apresentar, use "Restaurar demonstração" no menu do usuário para recalcular as datas.</span>
         </div>
         <div className="tbl-wrap">
           <table>
@@ -126,7 +125,6 @@ function UsuarioDrawer({ u, onClose }: { u: Usuario | null; onClose: () => void 
           {original.perfil !== f.perfil && <p>Perfil-base: <b>{PERFIS[original.perfil].nome}</b> → <b>{PERFIS[f.perfil].nome}</b></p>}
           {ganhos.length > 0 && <div><b className="text-[var(--ok)]">Passa a ter ({ganhos.length}):</b><ul className="list-disc ml-5 text-[13px]">{ganhos.map((g) => <li key={g}>{PERM_LABEL[g]}</li>)}</ul></div>}
           {perdas.length > 0 && <div><b className="text-[var(--danger)]">Deixa de ter ({perdas.length}):</b><ul className="list-disc ml-5 text-[13px]">{perdas.map((g) => <li key={g}>{PERM_LABEL[g]}</li>)}</ul></div>}
-          <p className="muted text-[12.5px]">Vale a partir do próximo clique de {f.nome.split(' ')[0]}, sem precisar sair do sistema.</p>
         </div>,
         'Salvar alterações',
       );
@@ -195,7 +193,7 @@ function UsuarioDrawer({ u, onClose }: { u: Usuario | null; onClose: () => void 
             <Field label="Nome completo" req className="col-span-2"><input id="us-nome" className="field" value={f.nome} onChange={(e) => setF({ ...f, nome: e.target.value })} /></Field>
             <Field label="E-mail (login)" req><input id="us-email" className="field" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} placeholder="nome.sobrenome@tecso.demo" /></Field>
             <Field label="Cargo"><input id="us-cargo" className="field" value={f.cargo} onChange={(e) => setF({ ...f, cargo: e.target.value })} /></Field>
-            <Field label={novo ? 'Senha provisória' : 'Senha'} hint="Protótipo: senha simulada, sem segurança real.">
+            <Field label={novo ? 'Senha provisória' : 'Senha'}>
               <div className="flex gap-2"><input id="us-senha" className="field" value={f.senha} onChange={(e) => setF({ ...f, senha: e.target.value })} /><button className="icon-btn border border-[var(--line)]" title="Gerar senha" aria-label="Gerar senha" onClick={() => setF({ ...f, senha: 'Tecso' + Math.floor(1000 + Math.random() * 9000) })}><KeyRound /></button></div>
             </Field>
             <Field label="Situação">
@@ -245,7 +243,6 @@ function UsuarioDrawer({ u, onClose }: { u: Usuario | null; onClose: () => void 
 
           <div>
             <span className="lbl block mb-1">Projetos vinculados</span>
-            <p className="muted text-[12px] mb-2">{f.perms.includes('projetos.todos') ? 'Este usuário já vê todos os projetos. O vínculo define quem é técnico principal de cada projeto.' : 'O usuário só enxerga os projetos marcados aqui (e as cooperativas e demandas deles).'}</p>
             <div className="grid gap-1.5">
               {db.projetos.map((p) => (
                 <label key={p.id} className="flex items-center gap-2 text-[13px]">

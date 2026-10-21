@@ -38,5 +38,5 @@ export function proximoItem(items: ItemCrono[], now = new Date()): { item: ItemC
   return { item: it, agora: at(it.data, it.ini) <= now };
 }
 
-export const TIPOS_COM_GRUPO = ['Visita DCO', 'Retorno ao grupo', 'Mentoria online (P2)', 'Suporte contínuo (P4)', 'Ação Cidades Circular'];
-export const TIPOS: ItemCrono['tipo'][] = ['Visita DCO', 'Retorno ao grupo', 'Mentoria online (P2)', 'Suporte contínuo (P4)', 'Capacitação online (P5)', 'Ação Cidades Circular', 'Deslocamento', 'Atividade interna', 'Outro'];
+export const TIPOS_COM_GRUPO = ['Visita DCO', 'Retorno ao grupo', 'Mentoria online', 'Suporte contínuo', 'Ação Cidades Circular'];
+export const TIPOS: ItemCrono['tipo'][] = ['Visita DCO', 'Retorno ao grupo', 'Mentoria online', 'Suporte contínuo', 'Capacitação online', 'Ação Cidades Circular', 'Deslocamento', 'Atividade interna', 'Outro'];

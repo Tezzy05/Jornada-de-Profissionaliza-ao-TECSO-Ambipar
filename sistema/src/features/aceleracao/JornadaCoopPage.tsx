@@ -13,6 +13,9 @@ import { CANAIS, INTEGRACAO_ITENS, MODALIDADES, PRODUTOS, TEMAS_SUPORTE } from '
 import { etapas, integracaoStatus } from './logic';
 import { STATUS_VISITA, visitaPct } from '@/features/visitas/dco';
 import { criarVisita } from '@/features/visitas/actions';
+import { TecnicoSelect, trocarResponsavel } from '@/components/TecnicoSelect';
+
+const projetoAcel = (db: { projetos: { id: string; tipo: string; coops: string[] }[] }, coopId: string) => db.projetos.find((p) => p.tipo === 'aceleracao' && p.coops.includes(coopId))?.id;
 
 export default function JornadaCoopPage() {
   const { coopId } = useParams();
@@ -36,7 +39,25 @@ export default function JornadaCoopPage() {
           <div className="flex gap-2 items-center flex-wrap"><h1 className="text-[22px] font-extrabold">{coop.nome}</h1><span className="tag">{coop.classificacao}</span>{coop.rede !== 'Sem rede' && <span className="tag blue">{coop.rede}</span>}</div>
           <div className="muted text-[12.5px] mt-1">{coop.cidade}/{coop.uf} · Liderança: {coop.lideranca} · {coop.contato} · {coop.ativos} cooperados ativos</div>
         </div>
-        <div className="flex items-center gap-2 text-[13px]"><Avatar u={tec} size="sm" /><span><span className="muted">Técnico de referência</span><br /><b>{tec?.nome}</b></span></div>
+        <div className="flex items-center gap-2 text-[13px]">
+          <Avatar u={tec} size="sm" />
+          <span>
+            <span className="muted block">Técnico de referência</span>
+            {can(me, 'aceleracao.responsaveis') ? (
+              <TecnicoSelect
+                id="coop-tec"
+                className="!py-1 !w-auto"
+                value={coop.tecnicoId}
+                onChange={(id) => {
+                  db.mut((d) => { d.coops.find((c) => c.id === coop.id)!.tecnicoId = id; });
+                  trocarResponsavel(id, projetoAcel(db, coop.id), `a cooperativa ${coop.nome}`);
+                }}
+              />
+            ) : (
+              <b>{tec?.nome}</b>
+            )}
+          </span>
+        </div>
         {can(me, 'coop.historico') && <button className="btn ghost sm" onClick={() => nav(`/historico?coop=${coop.id}`)}><History /> Histórico e exportação</button>}
       </div>
 
@@ -45,8 +66,7 @@ export default function JornadaCoopPage() {
           const e = ets[i];
           return (
             <button key={p.k} className={cn('step', sel === i && 'on')} onClick={() => setSel(i)}>
-              <span className="n">PRODUTO {p.n}</span>
-              <b>{p.t}</b>
+                            <b>{p.t}</b>
               <div className="flex items-center justify-between gap-2">
                 <span className={cn('tag', e.estado === 'ok' ? 'ok' : e.estado === 'cur' ? 'lime' : e.estado === 'lock' ? 'red' : '')}>
                   {e.estado === 'lock' ? <><Lock /> Bloqueado</> : e.estado === 'ok' ? <><CheckCircle2 /> {e.resumo}</> : e.resumo}
@@ -58,11 +78,10 @@ export default function JornadaCoopPage() {
       </div>
 
       <div className="mt-4">
-        <p className="muted text-[13px] mb-3">{PRODUTOS[sel].d}</p>
         {sel > 0 && travado && (
           <div className="alert red mb-3 flex gap-2 items-start">
             <Lock className="w-4 h-4 flex-none mt-0.5" />
-            <span>A integração desta cooperativa ainda não terminou ({ig.feitos}/{ig.total}). Conclua o checklist do Produto 1 antes de seguir com a cooperativa. <button className="btn link !p-0" onClick={() => setSel(0)}>Ir para a integração</button></span>
+            <span>Integração incompleta ({ig.feitos}/{ig.total}). <button className="btn link !p-0" onClick={() => setSel(0)}>Ir para a integração</button></span>
           </div>
         )}
         {sel === 0 && <P1 coopId={coop.id} />}
@@ -115,8 +134,7 @@ function P1({ coopId }: { coopId: string }) {
         })}
       </div>
       <div className="card pad self-start grid gap-3">
-        <h3 className="text-[15px] font-bold">Por que este checklist existe</h3>
-        <p className="text-[13px] muted">Garante que nenhuma atividade de integração ficou para trás antes de seguir com a cooperativa. Enquanto estiver incompleto, a mentoria (P2), a visita DCO (P3) e o suporte (P4) ficam bloqueados.</p>
+        <h3 className="text-[15px] font-bold">Andamento da integração</h3>
         <Bar v={(ig.feitos / ig.total) * 100} thick />
         {ig.completa ? <span className="tag ok justify-self-start"><CheckCircle2 /> Integração completa</span> : <span className="tag warn justify-self-start">Faltam {ig.total - ig.feitos} itens</span>}
       </div>
@@ -131,6 +149,7 @@ function P2({ coopId, travado }: { coopId: string; travado: boolean }) {
   const [modal, setModal] = useState(false);
   const ms = db.mentorias.filter((m) => m.coopId === coopId).sort((a, b) => b.data.localeCompare(a.data));
   const pode = can(me, 'aceleracao.editar') && !travado;
+  const podeResp = can(me, 'aceleracao.responsaveis');
   const setAcao = (mId: string, aId: string, status: AcaoPlano['status']) =>
     db.mut((d) => { d.mentorias.find((m) => m.id === mId)!.acoes.find((a) => a.id === aId)!.status = status; });
   return (
@@ -139,15 +158,30 @@ function P2({ coopId, travado }: { coopId: string; travado: boolean }) {
         <h3 className="text-[15px] font-bold m-0">Mentorias online e plano de ação</h3>
         {can(me, 'aceleracao.editar') && <button className="btn pri sm" disabled={travado} onClick={() => setModal(true)}><Plus /> Registrar mentoria</button>}
       </div>
-      {ms.length === 0 && <div className="card"><Empty title="Nenhuma mentoria registrada" text="Registre a mentoria online com a cooperativa. As informações e fotos aparecem para o técnico no dia da visita DCO." /></div>}
+      {ms.length === 0 && <div className="card"><Empty title="Nenhuma mentoria registrada" /></div>}
       {ms.map((m) => (
         <div key={m.id} className="card">
           <div className="pad pb-3 flex justify-between gap-3 flex-wrap">
             <div>
               <b className="font-display">Mentoria de {fmt(m.data)}</b>
-              <div className="muted text-[12.5px]">{m.modalidade} · {db.users.find((u) => u.id === m.tecnicoId)?.nome} · {m.participantes}</div>
+              <div className="muted text-[12.5px]">{m.modalidade} · {m.participantes}</div>
+              <div className="flex items-center gap-2 mt-1.5 text-[12.5px]">
+                <span className="muted">Técnico responsável:</span>
+                {podeResp ? (
+                  <TecnicoSelect
+                    className="!py-1 !w-auto !text-[12.5px]"
+                    value={m.tecnicoId}
+                    onChange={(id) => {
+                      db.mut((d) => { d.mentorias.find((x) => x.id === m.id)!.tecnicoId = id; });
+                      trocarResponsavel(id, projetoAcel(db, coopId), `a mentoria de ${fmt(m.data)}`);
+                    }}
+                  />
+                ) : (
+                  <b>{db.users.find((u) => u.id === m.tecnicoId)?.nome}</b>
+                )}
+              </div>
             </div>
-            <span className="tag tnum">{m.acoes.filter((a) => a.status === 'Concluída').length}/{m.acoes.length} ações concluídas</span>
+            <span className="tag tnum self-start">{m.acoes.filter((a) => a.status === 'Concluída').length}/{m.acoes.length} ações concluídas</span>
           </div>
           <div className="px-5 pb-5 grid gap-4 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
             <div className="grid gap-3 min-w-0">
@@ -159,10 +193,16 @@ function P2({ coopId, travado }: { coopId: string; travado: boolean }) {
                     {m.acoes.map((a) => (
                       <tr key={a.id}>
                         <td>{a.acao}</td>
-                        <td className="muted">{a.responsavel}</td>
+                        <td className="min-w-[160px]">
+                          {pode ? (
+                            <input className="field !py-1 !text-[12.5px]" value={a.responsavel} aria-label="Responsável pela ação" onChange={(e) => db.mut((d) => { d.mentorias.find((x) => x.id === m.id)!.acoes.find((y) => y.id === a.id)!.responsavel = e.target.value; })} />
+                          ) : (
+                            <span className="muted">{a.responsavel}</span>
+                          )}
+                        </td>
                         <td className="tnum">{fmtShort(a.prazo)}</td>
                         <td>
-                          <select className="field !py-1 !text-[12.5px]" disabled={!pode} value={a.status} onChange={(e) => setAcao(m.id, a.id, e.target.value as AcaoPlano['status'])} aria-label="Status da ação">
+                          <select className="field !py-1 !text-[12.5px] min-w-[130px]" disabled={!pode} value={a.status} onChange={(e) => setAcao(m.id, a.id, e.target.value as AcaoPlano['status'])} aria-label="Status da ação">
                             <option>A fazer</option><option>Em andamento</option><option>Concluída</option>
                           </select>
                         </td>
@@ -211,7 +251,7 @@ function MentoriaModal({ open, coopId, onClose }: { open: boolean; coopId: strin
         <Field label="Modalidade" req><select id="me-mod" className="field" value={f.modalidade} onChange={(e) => setF({ ...f, modalidade: e.target.value })}>{MODALIDADES.map((m) => <option key={m}>{m}</option>)}</select></Field>
         <Field label="Participantes" req><input id="me-part" className="field" placeholder="Nome (função), ..." value={f.participantes} onChange={(e) => setF({ ...f, participantes: e.target.value })} /></Field>
       </div>
-      <Field label="Pontos levantados" req hint="Ficam disponíveis para o técnico no dia da visita de campo."><textarea id="me-pontos" className="field min-h-[80px]" value={f.pontos} onChange={(e) => setF({ ...f, pontos: e.target.value })} /></Field>
+      <Field label="Pontos levantados" req><textarea id="me-pontos" className="field min-h-[80px]" value={f.pontos} onChange={(e) => setF({ ...f, pontos: e.target.value })} /></Field>
       <div>
         <div className="flex justify-between items-center mb-2"><span className="fl"><label className="!mb-0">Ações do plano</label></span><button className="btn ghost xs" onClick={() => setF({ ...f, acoes: [...f.acoes, { id: uid(), acao: '', responsavel: '', prazo: '', status: 'A fazer' }] })}><Plus /> Ação</button></div>
         <div className="grid gap-2">
@@ -242,6 +282,7 @@ function P3({ coopId, travado }: { coopId: string; travado: boolean }) {
   const me = useMe()!;
   const nav = useNavigate();
   const vs = db.visitas.filter((v) => v.coopId === coopId).sort((a, b) => b.data.localeCompare(a.data));
+  const podeResp = can(me, 'aceleracao.responsaveis');
   const podeIniciar = can(me, 'visitas.preencher') && db.projetos.some((p) => p.coops.includes(coopId) && p.tecnicos.includes(me.id));
   return (
     <div className="grid gap-4">
@@ -254,7 +295,7 @@ function P3({ coopId, travado }: { coopId: string; travado: boolean }) {
         )}
       </div>
       {vs.length === 0 ? (
-        <div className="card"><Empty title="Nenhuma visita DCO ainda" text="A visita pode ser iniciada aqui, pelo painel de visitas ou clicando no item do cronograma." /></div>
+        <div className="card"><Empty title="Nenhuma visita DCO ainda" /></div>
       ) : (
         <div className="card">
           <div className="tbl-wrap">
@@ -266,7 +307,24 @@ function P3({ coopId, travado }: { coopId: string; travado: boolean }) {
                   return (
                     <tr key={v.id} className={ok ? 'clickable' : ''} onClick={() => ok && nav(`/visitas/${v.id}`)}>
                       <td className="tnum">{fmt(v.data)}</td>
-                      <td>{db.users.find((u) => u.id === v.tecnicoId)?.nome}</td>
+                      <td onClick={(e) => podeResp && e.stopPropagation()}>
+                        {podeResp && v.status !== 'aprovada' ? (
+                          <TecnicoSelect
+                            className="!py-1 !w-auto !text-[12.5px]"
+                            value={v.tecnicoId}
+                            onChange={(id) => {
+                              db.mut((d) => {
+                                const x = d.visitas.find((y) => y.id === v.id)!;
+                                x.tecnicoId = id;
+                                x.hist.push({ em: new Date().toISOString(), por: me.id, acao: 'Técnico responsável alterado', detalhe: db.users.find((u) => u.id === id)?.nome });
+                              });
+                              trocarResponsavel(id, v.projetoId, `a visita DCO de ${fmt(v.data)}`);
+                            }}
+                          />
+                        ) : (
+                          db.users.find((u) => u.id === v.tecnicoId)?.nome
+                        )}
+                      </td>
                       <td><span className={`tag ${STATUS_VISITA[v.status].cls}`}>{STATUS_VISITA[v.status].t}</span></td>
                       <td style={{ minWidth: 140 }}><Bar v={visitaPct(v)} /><small className="muted tnum">{visitaPct(v)}%</small></td>
                       <td>{v.plano.enviadoEm ? <span className="tag ok"><FileText /> {fmtDateTime(v.plano.enviadoEm)}</span> : <span className="tag warn">Pendente</span>}</td>
@@ -288,6 +346,7 @@ function P4({ coopId, travado }: { coopId: string; travado: boolean }) {
   const db = useDB();
   const me = useMe()!;
   const [modal, setModal] = useState(false);
+  const podeResp = can(me, 'aceleracao.responsaveis');
   const as = db.atendimentos.filter((a) => a.coopId === coopId).sort((a, b) => b.data.localeCompare(a.data));
   return (
     <div className="grid gap-4">
@@ -296,7 +355,7 @@ function P4({ coopId, travado }: { coopId: string; travado: boolean }) {
         {can(me, 'aceleracao.editar') && <button className="btn pri sm" disabled={travado} onClick={() => setModal(true)}><Plus /> Registrar atendimento</button>}
       </div>
       {as.length === 0 ? (
-        <div className="card"><Empty title="Nenhum atendimento registrado" text="Registre as orientações dadas à cooperativa depois da parceria estabelecida." /></div>
+        <div className="card"><Empty title="Nenhum atendimento registrado" /></div>
       ) : (
         <div className="card">
           <div className="tbl-wrap">
@@ -309,7 +368,20 @@ function P4({ coopId, travado }: { coopId: string; travado: boolean }) {
                     <td><span className="tag">{a.tema}</span></td>
                     <td className="muted">{a.canal}</td>
                     <td className="text-[13px]">{a.resumo}<div className="muted text-[12px]">→ {a.encaminhamento}</div></td>
-                    <td className="muted">{db.users.find((u) => u.id === a.tecnicoId)?.nome}</td>
+                    <td>
+                      {podeResp ? (
+                        <TecnicoSelect
+                          className="!py-1 !w-auto !text-[12.5px]"
+                          value={a.tecnicoId}
+                          onChange={(id) => {
+                            db.mut((d) => { d.atendimentos.find((x) => x.id === a.id)!.tecnicoId = id; });
+                            trocarResponsavel(id, projetoAcel(db, coopId), `o atendimento de ${fmtShort(a.data)}`);
+                          }}
+                        />
+                      ) : (
+                        <span className="muted">{db.users.find((u) => u.id === a.tecnicoId)?.nome}</span>
+                      )}
+                    </td>
                     <td><div className="flex gap-1">{a.fotos.map((f) => <MediaThumb key={f} id={f} kind="img" className="w-12 h-10 rounded-md" />)}</div></td>
                   </tr>
                 ))}
@@ -377,7 +449,6 @@ function P5({ coopId }: { coopId: string }) {
         {[...meses.entries()].sort().map(([m, ok]) => (
           <span key={m} className={cn('tag', ok ? 'ok' : 'red')}>{m.slice(5)}/{m.slice(0, 4)} · {ok ? 'participou' : 'não participou'}</span>
         ))}
-        <span className="muted text-[12px] self-center">Meta do programa: ao menos 1 capacitação por mês.</span>
       </div>
       <div className="card">
         <div className="tbl-wrap">

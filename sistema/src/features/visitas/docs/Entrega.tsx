@@ -67,7 +67,7 @@ ${tec?.nome}`;
           <div className="card pad grid gap-3">
             <div>
               <h3 className="text-[15px] font-bold">Entrega do plano de ação</h3>
-              <p className="muted text-[12.5px]">Produto 2 do Programa de Aceleração. Anexe o plano entregue à cooperativa e confirme o envio: a data e a hora ficam registradas.</p>
+              <p className="muted text-[12.5px]">Anexe o plano entregue à cooperativa e confirme o envio.</p>
             </div>
             {mentoria && (
               <div className="info text-[12.5px]">Plano construído na mentoria online de {fmt(mentoria.data)} ({mentoria.acoes.length} ações).</div>

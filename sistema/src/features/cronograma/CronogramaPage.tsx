@@ -81,7 +81,7 @@ export default function CronogramaPage() {
       <PageHead
         crumbs="Operação"
         title="Cronograma de campo"
-        sub={verTodos ? 'Agenda dos técnicos, com acompanhamento item a item pela coordenação.' : 'Sua agenda de campo. Só você e a coordenação veem estes itens.'}
+        sub={verTodos ? 'Agenda dos técnicos, com acompanhamento item a item pela coordenação.' : 'Sua agenda de campo.'}
       >
         <Seg value={view} onChange={setView} options={[['dia', 'Dia'], ['semana', 'Semana'], ['mes', 'Mês']]} />
         {verTodos && (
@@ -166,7 +166,6 @@ export default function CronogramaPage() {
       <div className="card mt-4">
         <div className="pad pb-1.5 flex justify-between items-center gap-3 flex-wrap">
           <h3 className="m-0 text-[15px] font-bold">Acompanhamento por técnico · semana {weekLabel(monday)}</h3>
-          <span className="muted text-[12px]">Próximo item calculado com a data e a hora de agora ({String(now.getHours()).padStart(2, '0')}:{String(now.getMinutes()).padStart(2, '0')})</span>
         </div>
         <div className="tbl-wrap">
           <table>

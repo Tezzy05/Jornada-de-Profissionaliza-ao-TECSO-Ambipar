@@ -22,7 +22,7 @@ export default function DemandasPage() {
 
   return (
     <div>
-      <PageHead crumbs="Operação" title="Minhas demandas" sub="Subtarefas e itens do Cidades Circular em que você é o responsável. Os prazos também aparecem no seu cronograma." />
+      <PageHead crumbs="Operação" title="Minhas demandas" sub="Subtarefas e itens do Cidades Circular sob sua responsabilidade." />
       <div className="tabs mb-4">
         <button className={cn('tab', aba === 'abertas' && 'on')} onClick={() => setAba('abertas')}>Em aberto <span className="pc tnum">{minhas.filter((t) => t.status !== 'Concluída').length}</span></button>
         <button className={cn('tab', aba === 'concluidas' && 'on')} onClick={() => setAba('concluidas')}>Concluídas <span className="pc tnum">{minhas.filter((t) => t.status === 'Concluída').length}</span></button>

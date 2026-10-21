@@ -11,6 +11,7 @@ import type { Prioridade, StatusTarefa, Tarefa } from '@/lib/types';
 import { AREAS, cmpCodigo, PRIORIDADES, PRIO_CLS, SIT_CLS, situacaoPrazo, STATUS_CLS, STATUS_TAREFA } from './constants';
 import { podeAtualizar, respLabel } from './logic';
 import { RespSelect } from './shared';
+import { trocarResponsavel } from '@/components/TecnicoSelect';
 
 export function proximoCodigo(irmaos: { codigo: string }[], prefixo: string) {
   const n = irmaos.map((t) => Number(t.codigo.split('.').pop())).filter((x) => !isNaN(x));
@@ -95,7 +96,6 @@ export default function TarefaDrawer({ id, onClose, onNovoItem }: { id: string |
             <>
               {'org' in r && r.org && <div className="muted">{r.org}</div>}
               <div className="select-all">{r.contato || <span className="text-[var(--danger)]">Contato não informado</span>}</div>
-              <div className="muted text-[12px] mt-1">Agentes externos não têm login: a coordenação atualiza esta demanda por eles.</div>
             </>
           )}
         </div>
@@ -111,10 +111,10 @@ export default function TarefaDrawer({ id, onClose, onNovoItem }: { id: string |
         <Field label="Prioridade">
           <select id="tk-prio" className="field" disabled={!gere} value={t.prioridade} onChange={(e) => upd((x) => { x.prioridade = e.target.value as Prioridade; })}>{PRIORIDADES.map((a) => <option key={a}>{a}</option>)}</select>
         </Field>
-        <Field label="Responsável" className="col-span-2"><RespSelect id="tk-resp" projeto={p} disabled={!gere} value={t.responsavel} onChange={(v) => upd((x) => { x.responsavel = v; })} /></Field>
+        <Field label="Responsável" className="col-span-2"><RespSelect id="tk-resp" projeto={p} disabled={!gere} value={t.responsavel} onChange={(v) => { upd((x) => { x.responsavel = v; x.comentarios.push({ id: uid(), por: me.id, em: nowISO(), texto: `Responsável alterado para ${respLabel(db, v, p.id).nome}` }); }); if (v.startsWith('u:')) trocarResponsavel(v.slice(2), p.id, `a demanda ${p.sigla}-${t.codigo}`); }} /></Field>
         <Field label="Prazo"><input id="tk-prazo" type="date" className="field" disabled={!gere} value={t.prazo ?? ''} onChange={(e) => upd((x) => { x.prazo = e.target.value || undefined; })} /></Field>
         <Field label="Data de Conclusão"><input id="tk-conc" type="date" className="field" disabled={!(pode || gere) || t.status !== 'Concluída'} value={t.dataConclusao ?? ''} onChange={(e) => upd((x) => { x.dataConclusao = e.target.value || undefined; })} /></Field>
-        <Field label="Situação de Prazo" hint="Calculada pelo sistema"><input className="field" disabled value={sit} /></Field>
+        <Field label="Situação de Prazo"><input className="field" disabled value={sit} /></Field>
         <Field label="ID"><input className="field" disabled value={`${p.sigla}-${t.codigo}`} /></Field>
         <Field label="Observações" className="col-span-2"><textarea id="tk-obs" className="field" disabled={!(pode || gere)} value={t.observacoes} onChange={(e) => upd((x) => { x.observacoes = e.target.value; })} /></Field>
       </div>
@@ -141,7 +141,7 @@ export default function TarefaDrawer({ id, onClose, onNovoItem }: { id: string |
               })}
             </div>
           ) : (
-            <p className="muted text-[12.5px]">Sem itens. Use itens para detalhar a subtarefa (último nível).</p>
+            <p className="muted text-[12.5px]">Sem itens.</p>
           )}
         </div>
       )}
@@ -231,7 +231,6 @@ export function NovaTarefaModal({ ctx, onClose }: { ctx: { projetoId: string; to
         <Field label="Data de Entrada"><input id="nt-ent" type="date" className="field" value={f.dataEntrada} onChange={(e) => setF({ ...f, dataEntrada: e.target.value })} /></Field>
       </div>
       <Field label="Observações" opt><textarea id="nt-obs" className="field" value={f.observacoes} onChange={(e) => setF({ ...f, observacoes: e.target.value })} /></Field>
-      <p className="muted text-[12px]">Responsável externo que não está na lista? Cadastre na aba "Responsáveis" do projeto, com nome e contato.</p>
     </Modal>
   );
 }

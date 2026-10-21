@@ -1,13 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FileSpreadsheet, FolderArchive, Search, Camera, History, ArrowRight } from 'lucide-react';
+import { FileSpreadsheet, FolderArchive, Search, Camera, History, ArrowRight, Check } from 'lucide-react';
 import { useDB } from '@/store/db';
 import { useMe, useScope } from '@/store/scope';
 import { can } from '@/lib/permissions';
 import { fmtShort } from '@/lib/dates';
-import { cn } from '@/lib/utils';
+import { cn, slug } from '@/lib/utils';
 import { Empty, MediaThumb, Modal, PageHead, toast } from '@/components/ui';
-import { acoesDaCooperativa, baixarZipFotos, exportarHistoricoExcel, type Acao } from './historico';
+import { acoesDaCooperativa, baixarZipFotos, exportarHistoricoExcel, fotosDasAcoes, type Acao, type FotoRef } from './historico';
 import { etapas, naAceleracao } from '@/features/aceleracao/logic';
 import { PRODUTOS } from '@/features/aceleracao/constants';
 
@@ -25,6 +25,23 @@ export default function HistoricoPage() {
   const [texto, setTexto] = useState('');
   const [zip, setZip] = useState<string | null>(null);
   const [fotos, setFotos] = useState<Acao | null>(null);
+  const [sel, setSel] = useState<Set<string>>(new Set());
+  const chave = (f: FotoRef) => f.pasta + '/' + f.arquivo;
+  const abrirFotos = (a: Acao) => {
+    setFotos(a);
+    setSel(new Set(a.fotos.map(chave)));
+  };
+  const gerarZip = async (lista: Acao['fotos'], acao: Acao | null, sufixo: string) => {
+    if (!coop || !lista.length) return;
+    setZip('Preparando…');
+    try {
+      const fs = acao ? lista.map((f) => ({ ...f, data: acao.data, acao: acao.acao })) : fotosDasAcoes(acoes);
+      const n = await baixarZipFotos(db, coop.id, fs, sufixo, (a, b) => setZip(`${a}/${b}`));
+      toast(`ZIP gerado com ${n} foto${n === 1 ? '' : 's'}`);
+    } finally {
+      setZip(null);
+    }
+  };
   const coop = scope.coops.find((c) => c.id === coopId);
   const acoes = useMemo(() => (coop ? acoesDaCooperativa(db, coop.id, me) : []), [db, coop, me]);
   const etapasUsadas = [...new Set(acoes.map((a) => a.etapa))];
@@ -39,7 +56,7 @@ export default function HistoricoPage() {
 
   return (
     <div>
-      <PageHead crumbs="Cooperativas" title="Histórico da cooperativa" sub="Escolha a cooperativa para ver todas as ações feitas com ela ao longo da jornada, exportar em Excel e baixar as fotos em ZIP." />
+      <PageHead crumbs="Cooperativas" title="Histórico da cooperativa" />
 
       <div className="card pad mb-4 grid gap-3">
         <label className="flex items-center gap-2 field !py-2">
@@ -57,7 +74,7 @@ export default function HistoricoPage() {
       </div>
 
       {!coop ? (
-        <div className="card"><Empty icon={<History />} title="Escolha uma cooperativa" text="O histórico junta integração, plano de ação, visitas DCO, suporte, capacitações, cronograma e demandas do Cidades Circular." /></div>
+        <div className="card"><Empty icon={<History />} title="Escolha uma cooperativa" /></div>
       ) : (
         <>
           <div className="card p-5 flex gap-4 flex-wrap items-center mb-4">
@@ -68,7 +85,7 @@ export default function HistoricoPage() {
               {naAceleracao(db, coop.id) && (
                 <div className="flex gap-1.5 mt-2 flex-wrap">
                   {etapas(db, coop.id).map((e, i) => (
-                    <span key={i} className={cn('tag', e.estado === 'ok' ? 'ok' : e.estado === 'cur' ? 'lime' : e.estado === 'lock' ? 'red' : '')} title={PRODUTOS[i].t}>P{i + 1} · {e.estado === 'lock' ? 'Bloqueado' : e.resumo}</span>
+                    <span key={i} className={cn('tag', e.estado === 'ok' ? 'ok' : e.estado === 'cur' ? 'lime' : e.estado === 'lock' ? 'red' : '')} title={PRODUTOS[i].t}>{PRODUTOS[i].c} · {e.estado === 'lock' ? 'Bloqueado' : e.resumo}</span>
                   ))}
                 </div>
               )}
@@ -77,21 +94,13 @@ export default function HistoricoPage() {
             <div className="text-center px-3"><b className="block text-[24px] font-display tnum">{totalFotos}</b><span className="muted text-[12px]">fotos</span></div>
             {exporta && (
               <div className="flex gap-2 flex-wrap">
-                <button className="btn dark" onClick={() => exportarHistoricoExcel(db, coop.id, acoes, me).then(() => toast('Excel exportado com 9 abas'))}><FileSpreadsheet /> Exportar Excel</button>
+                <button className="btn dark" onClick={() => exportarHistoricoExcel(db, coop.id, acoes, me).then(() => toast('Excel exportado'))}><FileSpreadsheet /> Exportar Excel</button>
                 <button
                   className="btn pri"
                   disabled={!!zip || !totalFotos}
-                  onClick={async () => {
-                    setZip('Preparando…');
-                    try {
-                      const n = await baixarZipFotos(db, coop.id, acoes, (a, b) => setZip(`${a}/${b}`));
-                      toast(`ZIP gerado com ${n} fotos organizadas por etapa`);
-                    } finally {
-                      setZip(null);
-                    }
-                  }}
+                  onClick={() => gerarZip(acoes.flatMap((a) => a.fotos), null, 'fotos_jornada')}
                 >
-                  <FolderArchive /> {zip ? `Gerando ZIP ${zip}` : 'Baixar fotos (ZIP)'}
+                  <FolderArchive /> {zip && !fotos ? `Gerando ZIP ${zip}` : 'Baixar todas as fotos (ZIP)'}
                 </button>
               </div>
             )}
@@ -120,7 +129,7 @@ export default function HistoricoPage() {
                       <td className="text-[12.5px] whitespace-nowrap">{a.responsavel}</td>
                       <td><span className="tag">{a.status}</span></td>
                       <td className="muted text-[12px] min-w-[220px] max-w-[380px]">{a.detalhes}</td>
-                      <td>{a.fotos.length > 0 ? <button className="tag blue" onClick={() => setFotos(a)}><Camera /> {a.fotos.length}</button> : <span className="muted">—</span>}</td>
+                      <td>{a.fotos.length > 0 ? <button className="tag blue" onClick={() => abrirFotos(a)}><Camera /> {a.fotos.length}</button> : <span className="muted">—</span>}</td>
                     </tr>
                   ))}
                   {filtradas.length === 0 && <tr><td colSpan={7} className="muted">Nenhuma ação com esses filtros.</td></tr>}
@@ -134,14 +143,55 @@ export default function HistoricoPage() {
         </>
       )}
 
-      <Modal open={!!fotos} onClose={() => setFotos(null)} title={fotos?.acao ?? ''} wide>
+      <Modal
+        open={!!fotos}
+        onClose={() => setFotos(null)}
+        title={fotos?.acao ?? ''}
+        wide
+        footer={
+          fotos && exporta ? (
+            <>
+              <button className="btn ghost" disabled={!!zip} onClick={() => gerarZip(fotos.fotos, fotos, `fotos_${slug(fotos.etapa)}_${fotos.data}`)}>
+                <FolderArchive /> Baixar todas desta ação ({fotos.fotos.length})
+              </button>
+              <button className="btn pri" disabled={!!zip || sel.size === 0} onClick={() => gerarZip(fotos.fotos.filter((f) => sel.has(chave(f))), fotos, 'fotos_selecionadas')}>
+                <FolderArchive /> {zip ? `Gerando ZIP ${zip}` : `Baixar selecionadas (${sel.size}) .zip`}
+              </button>
+            </>
+          ) : undefined
+        }
+      >
+        {fotos && exporta && (
+          <div className="flex items-center gap-3 flex-wrap text-[13px]">
+            <b className="tnum">{sel.size} de {fotos.fotos.length} selecionadas</b>
+            <button className="btn link xs" onClick={() => setSel(new Set(fotos.fotos.map(chave)))}>Selecionar todas</button>
+            <button className="btn link xs" onClick={() => setSel(new Set())}>Limpar seleção</button>
+          </div>
+        )}
         <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
-          {fotos?.fotos.map((f) => (
-            <figure key={f.pasta + f.arquivo} className="m-0">
-              <MediaThumb id={f.mediaId} kind={f.mediaId.startsWith('seed:vid') || f.arquivo.endsWith('_video') ? 'vid' : 'img'} className="aspect-[4/3] rounded-lg" />
-              <figcaption className="text-[11px] muted mt-1 leading-tight">{f.descricao}</figcaption>
-            </figure>
-          ))}
+          {fotos?.fotos.map((f) => {
+            const k = chave(f);
+            const on = sel.has(k);
+            return (
+              <figure key={k} className="m-0">
+                <button
+                  type="button"
+                  className={cn('relative block w-full rounded-lg overflow-hidden transition', exporta && (on ? 'ring-[3px] ring-[var(--leaf)]' : 'opacity-60'))}
+                  onClick={() => exporta && setSel((x) => { const n = new Set(x); if (n.has(k)) n.delete(k); else n.add(k); return n; })}
+                  aria-pressed={on}
+                  aria-label={`Selecionar ${f.descricao}`}
+                >
+                  <MediaThumb id={f.mediaId} kind={f.mediaId.startsWith('seed:vid') || f.arquivo.endsWith('_video') ? 'vid' : 'img'} className="aspect-[4/3]" />
+                  {exporta && (
+                    <span className={cn('absolute top-1.5 right-1.5 w-6 h-6 rounded-md grid place-items-center border-2', on ? 'bg-[var(--leaf)] border-[var(--leaf)] text-white' : 'bg-white/90 border-[#c6d1bf]')}>
+                      {on && <Check className="w-4 h-4" strokeWidth={3} />}
+                    </span>
+                  )}
+                </button>
+                <figcaption className="text-[11px] muted mt-1 leading-tight">{f.descricao}</figcaption>
+              </figure>
+            );
+          })}
         </div>
       </Modal>
     </div>

@@ -121,7 +121,7 @@ export default function Relatorio({ v, ro, upd }: DocProps) {
               <Download /> Exportar PDF
             </button>
           </div>
-          <p className="muted text-[11.5px]">Na janela de impressão, escolha "Salvar como PDF". Mesmo padrão de exportação do ROI (Retorna Machine).</p>
+          <p className="muted text-[11.5px]">Mesmo padrão de exportação do ROI (Retorna Machine).</p>
         </div>
       </div>
     </div>

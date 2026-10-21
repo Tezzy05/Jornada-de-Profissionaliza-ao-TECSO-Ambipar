@@ -1,10 +1,10 @@
-// Produtos do Programa de Aceleração (documento "Incluir no mockup funcional").
+// Etapas do Programa de Aceleração (documento "Incluir no mockup funcional"). Exibidas só pelo nome, sem numeração.
 export const PRODUTOS = [
-  { n: 1, k: 'p1', t: 'Integração da cooperativa', d: 'Checagem e inclusão nos grupos: WhatsApp da cooperativa e grupo geral Impacta+.' },
-  { n: 2, k: 'p2', t: 'Plano de Ação Online', d: 'Mentoria online individual com a cooperativa. As informações e fotos ficam disponíveis para o técnico no dia da visita.' },
-  { n: 3, k: 'p3', t: 'Diagnóstico de Capacidade Operacional (DCO)', d: 'Visita de campo com os 7 documentos e a entrega do plano de ação.' },
-  { n: 4, k: 'p4', t: 'Suporte contínuo', d: 'Orientações sobre diversos temas depois da parceria estabelecida.' },
-  { n: 5, k: 'p5', t: 'Capacitações online', d: 'Treinamento ao menos 1 vez por mês para várias cooperativas juntas.' },
+  { n: 1, k: 'p1', c: 'Integração', t: 'Integração da cooperativa', d: 'Checagem e inclusão nos grupos: WhatsApp da cooperativa e grupo geral Impacta+.' },
+  { n: 2, k: 'p2', c: 'Plano de Ação', t: 'Plano de Ação Online', d: 'Mentoria online individual com a cooperativa. As informações e fotos ficam disponíveis para o técnico no dia da visita.' },
+  { n: 3, k: 'p3', c: 'DCO', t: 'Diagnóstico de Capacidade Operacional (DCO)', d: 'Visita de campo com os 7 documentos e a entrega do plano de ação.' },
+  { n: 4, k: 'p4', c: 'Suporte contínuo', t: 'Suporte contínuo', d: 'Orientações sobre diversos temas depois da parceria estabelecida.' },
+  { n: 5, k: 'p5', c: 'Capacitações', t: 'Capacitações online', d: 'Treinamento ao menos 1 vez por mês para várias cooperativas juntas.' },
 ] as const;
 
 // Checklist de integração: precisa estar completo antes de seguir com a cooperativa.

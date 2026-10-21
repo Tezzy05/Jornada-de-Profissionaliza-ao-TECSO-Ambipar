@@ -11,6 +11,7 @@ import { statusEfetivo, stTag } from './logic';
 import { criarVisita } from '@/features/visitas/actions';
 import { integracaoStatus } from '@/features/aceleracao/logic';
 import { STATUS_VISITA } from '@/features/visitas/dco';
+import { TecnicoSelect, trocarResponsavel } from '@/components/TecnicoSelect';
 
 export default function CronoItemDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const db = useDB();
@@ -78,7 +79,27 @@ export default function CronoItemDrawer({ id, onClose }: { id: string | null; on
         {proj && <span className="tag blue">{proj.nome}</span>}
       </div>
       <div className="grid gap-2 text-[13.5px]">
-        <div className="flex items-center gap-2"><Avatar u={tec} size="sm" /> <span><b>{tec?.nome}</b><span className="muted"> · {tec?.cargo}</span></span></div>
+        <div className="flex items-center gap-2">
+          <Avatar u={tec} size="sm" />
+          {can(me, 'aceleracao.responsaveis') || can(me, 'crono.editarTodos') ? (
+            <TecnicoSelect
+              id="crono-item-tec"
+              className="!w-auto !py-1.5"
+              value={item.tecnicoId}
+              onChange={(id) => {
+                db.mut((d) => {
+                  const c = d.crono.find((x) => x.id === item.id)!;
+                  c.tecnicoId = id;
+                  const v = d.visitas.find((x) => x.id === c.visitaId);
+                  if (v && v.status !== 'aprovada') v.tecnicoId = id;
+                });
+                trocarResponsavel(id, item.projetoId, `o item de ${fmtShort(item.data)} no cronograma`);
+              }}
+            />
+          ) : (
+            <span><b>{tec?.nome}</b><span className="muted"> · {tec?.cargo}</span></span>
+          )}
+        </div>
         {coop && (
           <div className="flex items-center gap-2 muted"><MapPin className="w-4 h-4" /> {item.endereco ?? 'Matriz'} · {coop.enderecos.find((e) => e.tipo === (item.endereco ?? 'Matriz'))?.end ?? coop.enderecos[0]?.end} · {coop.cidade}/{coop.uf}</div>
         )}

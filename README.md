@@ -1,6 +1,6 @@
 # Jornada de Profissionalização TECSO · Ambipar
 
-Protótipo funcional da extensão que leva para o sistema atual da Ambipar a operação de campo da TECSO com as cooperativas: Programa de Aceleração (produtos 1 a 5, incluindo o Diagnóstico de Capacidade Operacional, o DCO) e Programa Cidades Circular.
+Protótipo funcional da extensão que leva para o sistema atual da Ambipar a operação de campo da TECSO com as cooperativas: Programa de Aceleração (integração, plano de ação, Diagnóstico de Capacidade Operacional (DCO), suporte contínuo e capacitações) e Programa Cidades Circular.
 
 ## Como abrir
 
@@ -58,23 +58,26 @@ Os dados ficam salvos no navegador do computador onde o protótipo foi aberto. F
   - aprovação ou devolução com motivo pela coordenação;
   - histórico da visita.
 - **Programa de Aceleração**:
-  - jornada de cada cooperativa (P1 a P5);
+  - jornada de cada cooperativa, etapa por etapa, com o que foi feito e o que está pendente;
   - checklist de integração (WhatsApp e Impacta+) que bloqueia as etapas seguintes;
   - mentorias com plano de ação e fotos;
   - suporte contínuo;
-  - capacitações com presença e a meta de 1 por mês.
+  - capacitações com presença e a meta de 1 por mês;
+  - troca do técnico responsável em itens já criados (cooperativa, mentoria, atendimento, visita, cronograma e capacitação).
 - **Cidades Circular**:
   - um projeto por cliente;
   - assistente de criação: dados → técnicos principais e responsáveis externos (nome e contato) → importação do macro projeto em Excel e documento aprovado → revisão;
   - estrutura em tópicos, subtarefas e itens (no máximo um nível abaixo da subtarefa), com os campos da planilha da Letícia;
   - Situação de Prazo calculada automaticamente;
   - comentários, anexos e exportação em Excel;
-  - os prazos dos técnicos aparecem no cronograma deles.
+  - os prazos dos técnicos aparecem no cronograma deles;
+  - troca de responsável em cada demanda e transferência de todas as demandas de uma pessoa para outra (por exemplo, quando um técnico sai).
 - **Histórico da cooperativa**:
   - busca pelo nome;
   - todas as ações da jornada numa tabela;
-  - exportação em **Excel com 9 abas**;
-  - **ZIP com as fotos** organizadas por etapa, com índice.
+  - exportação em **Excel com 8 abas**;
+  - **ZIP com todas as fotos** organizadas por etapa;
+  - na janela de fotos de uma ação: ZIP só daquela ação ou só das fotos selecionadas.
 - **Usuários e acessos** (ADM):
   - perfis pré-definidos que já marcam os acessos;
   - ajuste de cada acesso;

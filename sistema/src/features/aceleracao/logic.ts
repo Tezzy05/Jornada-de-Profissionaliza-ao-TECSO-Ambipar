@@ -14,7 +14,7 @@ export function integracaoStatus(db: Pick<DB, 'integracoes' | 'projetos'>, coopI
 
 export type EtapaInfo = { estado: 'ok' | 'cur' | 'todo' | 'lock'; resumo: string };
 
-/** Situação de cada produto (P1–P5) para uma cooperativa. */
+/** Situação de cada etapa do programa para uma cooperativa. */
 export function etapas(db: DB, coopId: string): EtapaInfo[] {
   const ig = integracaoStatus(db, coopId);
   const ment = db.mentorias.filter((m) => m.coopId === coopId);

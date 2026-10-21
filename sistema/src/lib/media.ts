@@ -1,3 +1,4 @@
+import mentoriaVidaNova from '@/assets/mentoria-vida-nova.jpg';
 import { createStore, get, set, del, clear } from 'idb-keyval';
 import { useEffect, useState } from 'react';
 import { uid } from './utils';
@@ -11,6 +12,10 @@ interface Stored {
   mime: string;
 }
 
+// Fotos reais embutidas no sistema (id "asset:<nome>").
+const ASSETS: Record<string, string> = { 'mentoria-vida-nova': mentoriaVidaNova };
+export const assetId = (nome: keyof typeof ASSETS) => `asset:${nome}`;
+
 const urlCache = new Map<string, string>();
 const blobCache = new Map<string, Blob>();
 
@@ -22,7 +27,7 @@ export async function putMedia(blob: Blob, name = 'arquivo'): Promise<string> {
 }
 
 export async function removeMedia(id?: string) {
-  if (!id || id.startsWith('seed:')) return;
+  if (!id || id.startsWith('seed:') || id.startsWith('asset:')) return;
   await del(id, store);
   const u = urlCache.get(id);
   if (u) URL.revokeObjectURL(u);
@@ -39,6 +44,13 @@ export async function clearMedia() {
 
 export async function getMediaBlob(id: string): Promise<Blob | null> {
   if (blobCache.has(id)) return blobCache.get(id)!;
+  if (id.startsWith('asset:')) {
+    const src = ASSETS[id.slice(6)];
+    if (!src) return null;
+    const b = await (await fetch(src)).blob();
+    blobCache.set(id, b);
+    return b;
+  }
   if (id.startsWith('seed:')) {
     const b = await seedImage(id);
     blobCache.set(id, b);
