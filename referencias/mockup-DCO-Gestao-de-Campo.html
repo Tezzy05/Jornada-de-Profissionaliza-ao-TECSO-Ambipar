@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico de Capacidade Operacional – Sistema de Campo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0d1720; --ink-2:#16232e; --ink-3:#223240;
+  --lime:#ccff03; --green:#8eb202; --green-d:#5f7a00; --blue:#7ab6da;
+  --bg:#f3f5f1; --card:#fff; --line:#e3e8e0; --muted:#6b7a72; --text:#15201a;
+  --warn:#f2a900; --danger:#e0533d; --ok:#3aa757;
+  --r:14px; --sh:0 1px 2px rgba(13,23,32,.06),0 8px 24px rgba(13,23,32,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+h1,h2,h3,h4,.brand,.kpi b,.btn,.doc b{font-family:Montserrat,Inter,sans-serif}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+
+.top{position:sticky;top:0;z-index:30;background:var(--ink);color:#fff;height:64px;display:flex;align-items:center;gap:16px;padding:0 20px;border-bottom:3px solid var(--lime)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;white-space:nowrap}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--lime);display:grid;place-items:center}
+.brand small{display:block;font:500 11px Inter;color:#9fb0a8;letter-spacing:.4px;text-transform:uppercase}
+.search{flex:1;max-width:380px;display:flex;align-items:center;gap:8px;background:var(--ink-2);border:1px solid var(--ink-3);border-radius:999px;padding:8px 14px;color:#9fb0a8}
+.search input{background:none;border:0;outline:0;color:#fff;width:100%}
+.top .sp{flex:1}
+.sync{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--ink-2);border:1px solid var(--ink-3);font-size:12.5px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px rgba(204,255,3,.18)}
+.sync.off .dot{background:var(--warn);box-shadow:0 0 0 3px rgba(242,169,0,.2)}
+.role{background:var(--ink-2);border:1px solid var(--ink-3);color:#fff;border-radius:10px;padding:7px 10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:grid;place-items:center;font-weight:700;color:var(--ink);flex:none}
+
+.shell{display:grid;grid-template-columns:232px minmax(0,1fr);min-height:calc(100vh - 64px)}
+.side{background:#fff;border-right:1px solid var(--line);padding:18px 12px;display:flex;flex-direction:column;gap:4px}
+.side .lbl{font:600 11px Inter;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:12px 12px 6px}
+.nav{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#34423a;font-weight:500;position:relative;text-align:left;width:100%}
+.nav:hover{background:#f1f4ee}
+.nav.on{background:var(--ink);color:#fff}
+.nav.on::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--lime)}
+.nav svg{width:18px;height:18px;flex:none}
+.nav .cnt{margin-left:auto;font-size:11px;background:var(--lime);color:var(--ink);border-radius:999px;padding:1px 8px;font-weight:700;font-style:normal}
+.side .foot{margin-top:auto;padding:14px 12px;border-radius:12px;background:#f1f4ee;font-size:12px;color:var(--muted)}
+.side .foot b{color:var(--text);display:block;margin-bottom:2px}
+main{padding:26px 30px 60px;min-width:0}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+.crumbs{font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.crumbs a{color:var(--green-d);cursor:pointer;font-weight:600}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.head h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
+.head p{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;font-weight:700;font-size:13px;transition:.15s;white-space:nowrap}
+.btn.pri{background:var(--lime);color:var(--ink)}
+.btn.pri:hover{filter:brightness(.95)}
+.btn.dark{background:var(--ink);color:#fff}
+.btn.ghost{border:1.5px solid var(--line);background:#fff}
+.btn.ghost:hover{border-color:var(--ink)}
+.btn.sm{padding:6px 12px;font-size:12px}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.pad{padding:20px}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g21{grid-template-columns:2fr 1fr}
+.g-rep{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:999px;background:#eef2ea;color:#3d4b43;white-space:nowrap}
+.tag.lime{background:#f3ffc2;color:#4b5e00}
+.tag.blue{background:#e4f1f9;color:#23658c}
+.tag.warn{background:#fff3d6;color:#8a5d00}
+.tag.ok{background:#e3f5e7;color:#1f7a37}
+.tag.dark{background:var(--ink);color:var(--lime)}
+.tag.red{background:#fde7e3;color:#a8321f}
+.req{font-size:10.5px;font-weight:700;color:#a8321f;background:#fde7e3;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.opt{font-size:10.5px;font-weight:600;color:#6b7a72;background:#eef2ea;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+.muted{color:var(--muted)}
+h3{font-size:15px;font-weight:700;margin-bottom:12px}
+
+.hero{background:radial-gradient(1200px 400px at 90% -20%,rgba(204,255,3,.22),transparent 60%),linear-gradient(135deg,var(--ink) 0%,#12303a 100%);color:#fff;border-radius:20px;padding:28px 30px;display:flex;justify-content:space-between;gap:24px;align-items:center;margin-bottom:18px}
+.hero h2{font-size:28px;font-weight:800;line-height:1.15;max-width:560px}
+.hero h2 em{font-style:normal;color:var(--lime)}
+.hero p{color:#b8c7c0;margin-top:8px;max-width:520px}
+.ring{width:132px;height:132px;flex:none;position:relative}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:28px;font-weight:800}
+.ring small{position:absolute;bottom:34px;left:0;right:0;text-align:center;font-size:11px;color:#9fb0a8}
+.kpi{padding:18px 20px}
+.kpi span{font-size:12.5px;color:var(--muted)}
+.kpi b{display:block;font-size:28px;font-weight:800;margin:4px 0 8px;letter-spacing:-.5px}
+.bar{height:6px;border-radius:99px;background:#eef2ea;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--lime));border-radius:99px;transition:width .3s}
+
+.pipe{display:grid;grid-template-columns:repeat(6,minmax(150px,1fr));gap:12px;overflow-x:auto;padding-bottom:4px}
+.col{background:#eef2ea;border-radius:12px;padding:10px;min-height:140px}
+.col h4{font-size:12px;font-weight:700;display:flex;justify-content:space-between;margin:2px 4px 10px;color:#3d4b43}
+.vcard{background:#fff;border-radius:10px;padding:12px;border:1px solid var(--line);cursor:pointer;transition:.15s;margin-bottom:8px}
+.vcard:hover{border-color:var(--green);transform:translateY(-1px)}
+.vcard b{font-family:Montserrat;font-size:13px;display:block}
+.vcard small{color:var(--muted);display:block;margin:2px 0 8px}
+
+table{width:100%;border-collapse:collapse}
+th{font:600 11.5px Inter;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.tbl-wrap{overflow-x:auto}
+
+.vhead{display:flex;gap:18px;align-items:center;padding:20px 22px;flex-wrap:wrap}
+.vhead .ico{width:54px;height:54px;border-radius:14px;background:var(--ink);display:grid;place-items:center;color:var(--lime);font:800 18px Montserrat;flex:none}
+.vhead .meta{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:4px}
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.doc{padding:18px;text-align:left;display:flex;flex-direction:column;gap:10px;transition:.15s}
+.doc:hover{border-color:var(--green);transform:translateY(-2px)}
+.doc .di{width:42px;height:42px;border-radius:12px;background:#f3ffc2;display:grid;place-items:center;font-size:20px}
+.doc b{font-size:15px}
+.doc p{font-size:12.5px;color:var(--muted);min-height:36px}
+.doc .ft{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600}
+.docpane{display:none}
+.docpane.on{display:block;animation:fade .2s}
+.backbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:18px 0 12px;flex-wrap:wrap}
+.backbar h2{font-size:20px;font-weight:800}
+
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:600;font-size:12.5px;display:flex;align-items:center;gap:7px}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tab .pc{font-size:10.5px;color:var(--green)}
+.tab.on .pc{color:var(--lime)}
+.ci{border-bottom:1px solid var(--line);padding:14px 20px}
+.ci:last-child{border-bottom:0}
+.ci .l{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.ci .l label{font-weight:600;font-size:13.5px;cursor:pointer;flex:1}
+.cb{width:22px;height:22px;border-radius:7px;border:2px solid #c9d3c4;display:grid;place-items:center;flex:none;color:#fff;font-size:13px;font-weight:800;transition:.15s;background:#fff}
+.cb.y{background:var(--green);border-color:var(--green)}
+.ci .ex{display:grid;grid-template-columns:1fr auto;gap:10px;margin:10px 0 0 34px;align-items:start}
+.ci .thumbs{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 0 34px}
+.ci .thumbs img{width:54px;height:54px;object-fit:cover;border-radius:8px}
+.dq{display:grid;grid-template-columns:1fr 1.3fr;gap:14px}
+.field{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fbfcfa;outline:0;transition:.15s}
+.field:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(142,178,2,.15)}
+textarea.field{min-height:44px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.fl label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:#3d4b43}
+.photo-btn{display:inline-flex;align-items:center;gap:6px;border:1.5px dashed #c9d3c4;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:#3d4b43;background:#fafbf8;white-space:nowrap;cursor:pointer}
+.photo-btn:hover{border-color:var(--green)}
+.conf{display:flex;gap:14px;align-items:flex-start;background:var(--ink);color:#dfe8e3;border-radius:12px;padding:16px 18px;margin-bottom:14px}
+.conf b{color:var(--lime)}
+.lockbox{padding:50px 20px;text-align:center;color:var(--muted)}
+.info{background:#fafdf0;border:1px solid #e4f0b0;border-radius:12px;padding:12px 16px;font-size:13px;margin-bottom:14px}
+
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.ph{padding:14px;display:flex;flex-direction:column}
+.ph .t{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.ph .t b{font-size:13.5px;font-family:Montserrat}
+.ph .t small{color:var(--muted);font-size:11.5px}
+.ph .obs{font-size:12px;color:#4a5850;background:#f6f8f3;border-left:3px solid var(--green);border-radius:0 8px 8px 0;padding:7px 10px;margin:8px 0 10px}
+.ph .obs b{font:600 11px Inter;color:var(--green-d);text-transform:uppercase;letter-spacing:.3px;display:block}
+.slots{display:grid;grid-template-columns:1.4fr .8fr .8fr;gap:8px;align-items:end}
+.slot{border:1.5px dashed #c9d3c4;border-radius:10px;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center;position:relative;overflow:hidden;background:#fafbf8;cursor:pointer;transition:.15s}
+.slot:hover{border-color:var(--green)}
+.slot.need{border-color:#e9a79b;background:#fff7f5}
+.slot .rq{display:block;font-size:9.5px;font-weight:700;color:#a8321f;margin-top:2px}
+.slot.h{aspect-ratio:4/3}
+.slot.v,.slot.vid{aspect-ratio:3/4.4}
+.slot.fill{border:0;color:#fff}
+.slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.slot.fill::after{content:attr(data-l);position:absolute;left:6px;bottom:5px;font-size:10px;font-weight:700;background:rgba(13,23,32,.7);padding:1px 6px;border-radius:6px}
+.ph .st{display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:11.5px;gap:8px}
+.na{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);cursor:pointer}
+.ph.isna .slots{opacity:.35;pointer-events:none}
+
+.eq{display:grid;grid-template-columns:90px 1fr auto;gap:14px;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.eq:last-child{border-bottom:0}
+.eq .slot{aspect-ratio:1;width:90px}
+
+.sig{border:1.5px dashed #c9d3c4;border-radius:12px;background:#fafbf8;width:100%;height:130px;touch-action:none;display:block}
+.sigok{border-color:var(--green);background:#fbfff0}
+
+.rep{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px;font-size:12.5px}
+.rep h4{font:800 13px Montserrat;background:var(--ink);color:var(--lime);padding:6px 10px;border-radius:6px;margin:16px 0 10px}
+.rep .rgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rep .rph{aspect-ratio:4/3;border-radius:6px;background:#dfe6dc;display:grid;place-items:center;color:#7d8b83;font-size:10px;overflow:hidden;position:relative}
+.rep .rph img{width:100%;height:100%;object-fit:cover}
+.rep .ident{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.rep .sigs{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px}
+.rep .sigs>div{border-top:1.5px solid var(--ink);padding-top:6px;text-align:center;font-size:11.5px}
+.rep .sigs img{height:54px;display:block;margin:-60px auto 6px}
+
+.seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{padding:7px 16px;border-radius:999px;font-weight:600;font-size:12.5px}
+.seg button.on{background:var(--ink);color:#fff}
+.wk{display:grid;grid-template-columns:170px repeat(5,minmax(130px,1fr));min-width:860px}
+.wk>div{border-bottom:1px solid var(--line);border-right:1px solid var(--line);padding:10px;min-height:86px}
+.wk .hd{min-height:0;font:600 11.5px Inter;color:var(--muted);text-transform:uppercase;background:#fafbf8}
+.tc{display:flex;gap:10px;align-items:center;font-weight:600}
+.tc .avatar{width:30px;height:30px;font-size:11px}
+.ev{border-radius:8px;padding:6px 8px;font-size:11.5px;margin-bottom:6px;border-left:3px solid var(--green);background:#f3ffc2}
+.ev b{display:block;font-size:12px}
+.ev.s-Conc{border-color:var(--ok);background:#e3f5e7}
+.ev.s-Reag{border-color:var(--warn);background:#fff3d6}
+.ev.s-Canc{border-color:var(--danger);background:#fde7e3;text-decoration:line-through}
+.ev.s-Andam{border-color:var(--blue);background:#e4f1f9}
+.ev.s-Plan{border-color:#b9c3bd;background:#f1f4ee}
+.dayrow{display:grid;grid-template-columns:180px 1fr;gap:12px;border-bottom:1px solid var(--line)}
+.mo{display:grid;grid-template-columns:repeat(7,minmax(90px,1fr));min-width:680px}
+.mo>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-height:84px;padding:6px 8px;font-size:12px}
+.mo .dn{font-weight:700}
+.mo .off{background:#fafbf8;color:#b9c3bd}
+.mo .pill{display:block;font-size:10.5px;border-radius:6px;padding:1px 6px;margin-top:3px;background:#f3ffc2;color:#4b5e00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.arch{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:10px}
+.node{border-radius:14px;padding:16px;border:1px solid var(--line);background:#fff;text-align:center}
+.node.d{background:var(--ink);color:#fff;border-color:var(--ink)}
+.node b{font-family:Montserrat;display:block;margin-bottom:4px}
+.node small{font-size:11.5px;color:var(--muted)}
+.node.d small{color:#9fb0a8}
+.arrow{color:var(--green);font-weight:800;font-size:20px;text-align:center}
+.perm td:not(:first-child),.perm th:not(:first-child){text-align:center}
+.yy{color:var(--green);font-weight:800}
+.nn{color:#b9c3bd}
+
+.gcard{overflow:hidden}
+.gcard .cover{height:92px;background:linear-gradient(135deg,var(--ink),#1c4450);position:relative;padding:16px 18px;color:#fff}
+.gcard .cover b{font:800 18px Montserrat}
+.gcard .cover .tag{position:absolute;right:14px;top:14px}
+.gcard dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;padding:16px 18px;font-size:13px}
+.gcard dt{color:var(--muted)}
+
+.modal{position:fixed;inset:0;background:rgba(13,23,32,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+.modal.on{display:flex}
+.modal .box{background:#fff;border-radius:18px;max-width:640px;width:100%;max-height:92vh;overflow:auto}
+.modal .mh{padding:18px 22px;display:flex;justify-content:space-between;align-items:center;background:var(--ink);color:#fff;border-radius:18px 18px 0 0}
+.modal .mb{padding:20px 22px;display:grid;gap:12px}
+.modal .mf{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;border-left:4px solid var(--lime);opacity:0;transition:.25s;z-index:60;font-weight:500;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1;transform:translateX(-50%)}
+.toast.err{border-left-color:var(--danger)}
+.ro .editable{pointer-events:none;opacity:.6}
+.chk{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.chk:last-child{border-bottom:0}
+#printArea{display:none}
+
+@media print{
+  body>*:not(#printArea){display:none!important}
+  #printArea{display:block!important}
+  body{background:#fff}
+  .pbreak{page-break-after:always}
+  .rep{border:0;padding:0}
+}
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:1fr 1fr}.arch{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}.g-rep{grid-template-columns:1fr}}
+@media (max-width:820px){
+  .shell{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;bottom:0;left:0;right:0;top:auto;flex-direction:row;padding:6px;z-index:40;border-top:1px solid var(--line);border-right:0;justify-content:space-around}
+  .side .lbl,.side .foot,.nav .cnt,.nav span{display:none}
+  .nav{justify-content:center;padding:12px}
+  .nav.on::before{display:none}
+  main{padding:18px 16px 90px}
+  .search{display:none}
+  .role{max-width:120px}
+  .top{gap:10px;padding:0 12px}
+  .brand{font-size:13px}.brand small{display:none}
+  .g2,.g3,.g4,.g21{grid-template-columns:1fr}
+  .row3,.dq{grid-template-columns:1fr}
+  .hero{flex-direction:column;align-items:flex-start;padding:22px}
+  .hero h2{font-size:22px}
+  .head h1{font-size:21px}
+  .sync span{display:none}
+  .ci .ex{grid-template-columns:1fr;margin-left:0}
+  .ci .thumbs{margin-left:0}
+  .eq{grid-template-columns:70px 1fr}
+  .eq .slot{width:70px}
+  .eq .act{grid-column:1/-1}
+  .rep{padding:16px}
+  .rep .rgrid{grid-template-columns:1fr 1fr}
+  .rep .ident,.rep .sigs{grid-template-columns:1fr}
+  .dayrow{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <div class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0d1720" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 14-14-1 9-6 14-14 14z"/><path d="M5 19l7-7"/></svg></div>
+    <div>Diagnóstico de Capacidade Operacional<small>Logística Reversa · Pós-Consumo</small></div>
+  </div>
+  <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input placeholder="Buscar grupo, visita ou cooperado"></label>
+  <div class="sp"></div>
+  <button class="sync" id="syncBtn" title="Alternar modo offline (simulação)"><i class="dot"></i><span id="syncTxt">Sincronizado</span></button>
+  <select class="role" id="role" title="Perfil de acesso (simulação)">
+    <option value="tecnico">Técnico (Operacional)</option>
+    <option value="coord">Coordenação de campo</option>
+    <option value="gestao">Gestão</option>
+    <option value="expansao">Expansão</option>
+    <option value="projetos">Projetos</option>
+    <option value="adm">ADM</option>
+    <option value="consulta">Consulta</option>
+  </select>
+  <div class="avatar">MC</div>
+</header>
+
+<div class="shell">
+  <nav class="side">
+    <div class="lbl">Operação</div>
+    <button class="nav on" data-v="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg><span>Painel</span></button>
+    <button class="nav" data-v="crono"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>Cronograma de campo</span></button>
+    <button class="nav" data-v="visita"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg><span>Visitas</span><em class="cnt">2</em></button>
+    <button class="nav" data-v="grupos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Grupos parceiros</span></button>
+    <div class="lbl" id="lblSis">Sistema</div>
+    <button class="nav" data-v="integracao" id="navInt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M1 12h4M19 12h4M4.2 19.8L7 17M17 7l2.8-2.8"/></svg><span>Integração e perfis</span></button>
+    <div class="foot"><b>Rodada 2026</b>Análise situacional · LR</div>
+  </nav>
+
+  <main>
+  <!-- PAINEL -->
+  <section class="view on" id="v-painel">
+    <div class="hero">
+      <div>
+        <span class="tag dark">Programa de Aceleração Ambipar</span>
+        <h2 style="margin-top:12px">Análise situacional dos <em>grupos parceiros</em></h2>
+        <p>Coleta de informações para o diagnóstico e o plano de ação de cada grupo. Nesta etapa não há orientação técnica.</p>
+        <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+          <button class="btn pri" data-go="visita">Continuar visita ACAMBB →</button>
+          <button class="btn" style="color:#fff;border:1.5px solid #3a4b57" data-go="crono">Ver cronograma</button>
+        </div>
+      </div>
+      <div class="ring">
+        <svg viewBox="0 0 120 120" width="132" height="132"><circle cx="60" cy="60" r="50" fill="none" stroke="#223240" stroke-width="12"/><circle id="ringArc" cx="60" cy="60" r="50" fill="none" stroke="#ccff03" stroke-width="12" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="182" transform="rotate(-90 60 60)"/></svg>
+        <b id="ringPct">42%</b><small>visita atual</small>
+      </div>
+    </div>
+    <div class="grid g4">
+      <div class="card kpi"><span>Visitas na semana</span><b>6</b><div class="bar"><i style="width:33%"></i></div><small class="muted">2 concluídas · 3 técnicos</small></div>
+      <div class="card kpi"><span>Checklist da análise (ACAMBB)</span><b id="kEix">0 / 0</b><div class="bar"><i id="kEixB"></i></div><small class="muted">Itens dos eixos 1–5, 7 e 8</small></div>
+      <div class="card kpi"><span>Registros fotográficos obrigatórios</span><b id="kPh">0 / 0</b><div class="bar"><i id="kPhB"></i></div><small class="muted">Fotos H + V e vídeos exigidos</small></div>
+      <div class="card kpi"><span>Termos de imagem</span><b id="kTe">0 / 0</b><div class="bar"><i id="kTeB"></i></div><small class="muted">Cooperados ativos ACAMBB</small></div>
+    </div>
+    <div class="card pad" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Fluxo das visitas</h3><span class="muted" style="font-size:12px">Envio liberado só com o checklist de entrega completo</span></div>
+      <div class="pipe">
+        <div class="col"><h4>Planejada <span>1</span></h4><div class="vcard" data-go="crono"><b>Grupo Recicla Norte</b><small>Técnico: Bruno L.</small><span class="tag">01/10</span></div></div>
+        <div class="col"><h4>Agendada <span>1</span></h4><div class="vcard" data-go="crono"><b>COOTRAEMPOCAP</b><small>Técnico: Ana R.</small><span class="tag blue">02/10 · 09h</span></div></div>
+        <div class="col"><h4>Em campo <span>1</span></h4><div class="vcard" data-go="visita"><b>ACAMBB</b><small>Técnico: Matheus C.</small><span class="tag lime">Em preenchimento</span></div></div>
+        <div class="col"><h4>Consolidação <span>0</span></h4></div>
+        <div class="col"><h4>Enviada <span>1</span></h4><div class="vcard"><b>Coop. Vida Nova</b><small>Técnico: Ana R.</small><span class="tag">Aguardando</span></div></div>
+        <div class="col"><h4>Aprovada <span>1</span></h4><div class="vcard"><b>Assoc. Mãos Unidas</b><small>Técnico: Bruno L.</small><span class="tag ok">Com a Expansão</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CRONOGRAMA -->
+  <section class="view" id="v-crono">
+    <div class="head"><div><div class="crumbs">Operação</div><h1>Cronograma de campo</h1><p>Agenda dos técnicos, com acompanhamento item a item pela coordenação.</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <div class="seg" id="cView"><button data-c="dia">Dia</button><button data-c="semana" class="on">Semana</button><button data-c="mes">Mês</button></div>
+        <select class="field" id="cTec" style="width:auto;border-radius:999px"><option value="">Todos os técnicos</option></select>
+        <button class="btn pri" id="cAdd">＋ Novo item</button>
+      </div>
+    </div>
+    <div class="grid g4" id="cKpis" style="margin-bottom:16px"></div>
+    <div class="card" style="overflow:hidden"><div class="tbl-wrap" id="cBody"></div></div>
+    <div class="card" style="margin-top:16px"><div class="pad" style="padding-bottom:6px"><h3 style="margin:0">Acompanhamento por técnico · semana 28/09 a 02/10</h3></div><div class="tbl-wrap"><table id="cTbl"></table></div></div>
+  </section>
+
+  <!-- VISITA -->
+  <section class="view" id="v-visita">
+    <div class="crumbs">Visitas › ACAMBB</div>
+    <div class="card">
+      <div class="vhead">
+        <div class="ico">AC</div>
+        <div style="flex:1;min-width:220px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h1 style="font-size:22px;font-weight:800">ACAMBB</h1><span class="tag lime">Em campo</span><span class="tag">Acelerada</span><span class="tag blue">Rede Candanga</span></div>
+          <div class="meta"><span>📍 Matriz · SCIA Q. 9 Cj. 01 Lote 02 · Brasília-DF</span><span>👤 Liderança: Vantuil</span><span>🧑‍🔧 Técnico: Matheus C.</span><span>🗓 25/09/2026</span></div>
+        </div>
+        <button class="btn ghost" id="saveBtn">Salvar rascunho</button>
+      </div>
+    </div>
+
+    <div id="docHome">
+      <div class="backbar"><h2>Qual documento você quer preencher?</h2><span class="muted" style="font-size:12.5px">A identificação do grupo é digitada uma vez e reaproveitada em todos.</span></div>
+      <div class="docs" id="docCards"></div>
+    </div>
+
+    <div class="docpane" data-d="analise">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Análise Situacional</h2></div><span class="tag" id="anPct"></span></div>
+      <div class="tabs" id="eixoTabs"></div>
+      <div id="eixoBody"></div>
+    </div>
+
+    <div class="docpane" data-d="fotos">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Registro fotográfico · 14 cenas</h2></div><span class="tag" id="phPct"></span></div>
+      <div class="info">Toque num espaço para tirar ou escolher a foto. O sistema confere se a foto está <b>na horizontal ou na vertical</b>. Espaços em vermelho são <b>obrigatórios</b>: a cena só fica completa com todos preenchidos, ou marcada como "Não possui" com justificativa.</div>
+      <div class="photos" id="photos"></div>
+    </div>
+
+    <div class="docpane" data-d="equip">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Equipamentos</h2></div><span class="tag" id="eqPct"></span></div>
+      <div class="grid g21">
+        <div class="card">
+          <div class="pad" style="padding-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Inventário do grupo</h3><span class="muted" style="font-size:12px">Cada equipamento gera uma foto obrigatória</span></div>
+          <div id="eqList"></div>
+        </div>
+        <div class="card pad editable">
+          <h3>Adicionar equipamento</h3>
+          <div style="display:grid;gap:10px">
+            <div class="fl"><label>Tipo <span class="req">Obrigatório</span></label><select class="field" id="eqTipo"><option>Prensa</option><option>Esteira</option><option>Balança</option><option>Empilhadeira</option><option>Carrinho/paleteira</option><option>Veículo</option><option>Equip. de escritório</option><option>Equip. de refeitório</option><option>Outro</option></select></div>
+            <div class="row2"><div class="fl"><label>Quantidade <span class="req">Obrig.</span></label><input class="field" id="eqQtd" type="number" min="1" value="1"></div><div class="fl"><label>Capacidade <span class="opt">Opcional</span></label><input class="field" id="eqCap" placeholder="ex.: 500 kg"></div></div>
+            <div class="fl"><label>Especificação / modelo <span class="req">Obrigatório</span></label><input class="field" id="eqEsp" placeholder="ex.: Prensa vertical hidráulica 15 t"></div>
+            <div class="row2"><div class="fl"><label>Estado <span class="req">Obrig.</span></label><select class="field" id="eqEst"><option>Operando</option><option>Operando com danos</option><option>Parado</option></select></div><div class="fl"><label>Conforme NR <span class="req">Obrig.</span></label><select class="field" id="eqNr"><option>Sim</option><option>Não</option><option>Não avaliado</option></select></div></div>
+            <div class="fl" id="eqDanoW" style="display:none"><label>Danos observados <span class="req">Obrigatório</span></label><input class="field" id="eqDano"></div>
+            <button class="btn pri" id="eqAdd" style="justify-content:center">＋ Adicionar ao inventário</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="docpane" data-d="termos">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Termos de uso de imagem</h2></div><span class="tag" id="tePct"></span></div>
+      <div class="tabs"><button class="tab on" data-tt="lista">Cooperados</button><button class="tab" data-tt="modelo">Modelo padrão para impressão</button></div>
+      <div id="tt-lista" class="grid g21">
+        <div class="card">
+          <div class="pad" style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;gap:10px;flex-wrap:wrap"><h3 style="margin:0">Cooperados ativos</h3><button class="btn pri editable sm" id="addCoop">＋ Novo termo</button></div>
+          <div class="tbl-wrap"><table id="coopTbl"></table></div>
+        </div>
+        <div class="card pad">
+          <h3>Coleta</h3>
+          <p class="muted" style="font-size:13px">Aceite presencial, em 2 vias. Colha a assinatura na tela ou anexe a foto/PDF do termo assinado em papel.</p>
+          <div class="kpi" style="padding:14px 0 0"><span>Coletados</span><b id="termCount"></b><div class="bar"><i id="termBar"></i></div></div>
+          <div class="info" style="margin:16px 0 0">🔒 CPF e RG são dados pessoais (LGPD). Nos perfis sem permissão aparecem mascarados.</div>
+        </div>
+      </div>
+      <div id="tt-modelo" style="display:none">
+        <div class="grid g2">
+          <div class="card pad">
+            <h3>Campos fixos do modelo</h3>
+            <p class="muted" style="font-size:13px;margin-bottom:12px">Saem preenchidos em todos os termos impressos. Nome, estado civil, RG, CPF, endereço e assinatura ficam em branco para o cooperado.</p>
+            <div style="display:grid;gap:10px">
+              <div class="row2"><div class="fl"><label>Nacionalidade</label><input class="field tm" data-k="nac"></div><div class="fl"><label>Profissão</label><input class="field tm" data-k="prof"></div></div>
+              <div class="row2"><div class="fl"><label>Cidade da assinatura</label><input class="field tm" data-k="cidade"></div><div class="fl"><label>UF</label><input class="field tm" data-k="uf"></div></div>
+              <div class="row2"><div class="fl"><label>Data da visita</label><input class="field tm" data-k="data" type="date"></div><div class="fl"><label>Nº de cooperados (cópias)</label><input class="field tm" data-k="copias" type="number" min="1"></div></div>
+              <label class="na" style="font-size:13px;color:var(--text)"><input type="checkbox" id="tmVias" checked> Imprimir em 2 vias</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn dark" id="tmSave">Salvar modelo padrão</button><button class="btn pri" id="tmPrint">🖨 Imprimir termos</button></div>
+            </div>
+          </div>
+          <div class="card pad"><h3>Pré-visualização</h3><div id="tmPrev" style="border:1px solid var(--line);border-radius:10px;padding:16px;background:#fcfdfb"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="docpane" data-d="decl">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Declaração de Capacidade Operacional</h2></div></div>
+      <div class="card pad" style="margin-bottom:14px;background:linear-gradient(135deg,var(--ink),#12303a);color:#fff;border:0">
+        <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end">
+          <div><span class="tag dark">Conclusão da Declaração</span><h3 style="margin:10px 0 4px;color:#fff;font-size:18px">Capacidade operacional do grupo</h3><p style="color:#b8c7c0;font-size:13px">Com base na estrutura verificada na unidade de triagem visitada.</p></div>
+          <div class="row2 editable" style="width:min(440px,100%)">
+            <div class="fl"><label style="color:#b8c7c0">Capacidade máxima (t/ano) <span class="req">Obrig.</span></label><input class="field" id="capAno" type="number" placeholder="0" style="background:#16232e;border-color:#2d3f4d;color:#fff;font:800 20px Montserrat"></div>
+            <div class="fl"><label style="color:#b8c7c0">Produção média (colab./dia) <span class="req">Obrig.</span></label><input class="field" id="capDia" type="number" placeholder="0" style="background:#16232e;border-color:#2d3f4d;color:#fff;font:800 20px Montserrat"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card editable" id="decl"></div>
+    </div>
+
+    <div class="docpane" data-d="relat">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Relatório de Campo</h2></div><span class="tag" id="rePct"></span></div>
+      <div class="grid g-rep">
+        <div><div class="info">Montado automaticamente com as fotos, os equipamentos e a identificação da visita. Revise, preencha as assinaturas e exporte.</div><div class="rep" id="repPrev"></div></div>
+        <div class="card pad editable" style="align-self:start">
+          <h3>Informações complementares <span class="opt">Opcional</span></h3>
+          <textarea class="field" id="repInfo" style="min-height:80px" placeholder="Observações relevantes da visita (também entram no e-mail de conclusão)"></textarea>
+          <h3 style="margin-top:18px">Responsável do grupo / quem atendeu</h3>
+          <div class="row2"><div class="fl"><label>Nome <span class="req">Obrig.</span></label><input class="field rf" id="respNome"></div><div class="fl"><label>CPF <span class="req">Obrig.</span></label><input class="field rf" id="respCpf" placeholder="000.000.000-00"></div></div>
+          <div class="fl" style="margin-top:8px"><label>Assinatura <span class="req">Obrigatório</span></label><canvas class="sig" id="sigResp"></canvas><button class="muted" data-clear="sigResp" style="font-size:12px">Limpar</button></div>
+          <h3 style="margin-top:14px">Técnico responsável</h3>
+          <div class="row2"><div class="fl"><label>Nome</label><input class="field rf" id="tecNome" value="Matheus Correia"></div><div class="fl"><label>CPF <span class="req">Obrig.</span></label><input class="field rf" id="tecCpf" placeholder="000.000.000-00"></div></div>
+          <div class="fl" style="margin-top:8px"><label>Assinatura <span class="req">Obrigatório</span></label><canvas class="sig" id="sigTec"></canvas><button class="muted" data-clear="sigTec" style="font-size:12px">Limpar</button></div>
+          <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button class="btn dark" id="repSave">Salvar relatório</button><button class="btn pri" id="repPdf">⬇ Exportar PDF</button></div>
+          <p class="muted" style="font-size:11.5px;margin-top:8px">Mesmo padrão de exportação do ROI (Retorna Machine).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="docpane" data-d="entrega">
+      <div class="backbar"><div><div class="crumbs"><a data-back>← Documentos</a></div><h2>Entrega</h2></div></div>
+      <div class="grid g2">
+        <div class="card pad"><h3>Checklist de entrega</h3><div id="delivChk"></div>
+          <button class="btn dark" id="sendBtn" style="margin-top:16px;width:100%;justify-content:center" disabled>Enviar para a coordenação</button>
+          <p class="muted" style="font-size:12px;margin-top:8px;text-align:center">Liberado quando todos os itens estiverem completos.</p></div>
+        <div class="card pad"><h3>E-mail de conclusão</h3><div id="mailPrev" style="font-size:13px;background:#fafbf8;border:1px solid var(--line);border-radius:10px;padding:14px;white-space:pre-wrap"></div>
+          <button class="btn ghost" id="mailCopy" style="margin-top:12px">Copiar texto</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GRUPOS -->
+  <section class="view" id="v-grupos">
+    <div class="head"><div><div class="crumbs">Cadastro</div><h1>Grupos parceiros</h1><p>Cooperativas e associações de logística reversa.</p></div><button class="btn pri editable">＋ Novo grupo</button></div>
+    <div class="grid g3">
+      <div class="card gcard"><div class="cover"><b>ACAMBB</b><div style="font-size:12px;color:#9fb0a8">Brasília · DF</div><span class="tag lime">Acelerada</span></div>
+        <dl><dt>Endereços</dt><dd><span class="tag dark">Matriz</span> SCIA Q. 9 Cj. 01 Lote 02</dd><dt>Liderança</dt><dd>Vantuil</dd><dt>Rede</dt><dd>Rede Candanga</dd><dt>Visita</dt><dd><span class="tag lime">Em campo</span></dd></dl></div>
+      <div class="card gcard"><div class="cover"><b>COOTRAEMPOCAP</b><div style="font-size:12px;color:#9fb0a8">Brasília · DF</div><span class="tag blue">Sob demanda</span></div>
+        <dl><dt>Endereços</dt><dd><span class="tag dark">Matriz</span> SAAN Q. 2 Lote 650<br><span class="tag">Filial</span> SCIA Q. 10</dd><dt>Liderança</dt><dd>Kailane</dd><dt>Rede</dt><dd>Sem rede</dd><dt>Visita</dt><dd><span class="tag blue">Agendada 02/10</span></dd></dl></div>
+      <div class="card" style="display:grid;place-items:center;border-style:dashed;min-height:220px;box-shadow:none;background:transparent"><div style="text-align:center" class="muted"><div style="font-size:30px">＋</div>Cadastrar grupo com<br>matriz, filiais e administrativo</div></div>
+    </div>
+  </section>
+
+  <!-- INTEGRAÇÃO -->
+  <section class="view" id="v-integracao">
+    <div class="head"><div><div class="crumbs">Sistema</div><h1>Integração e perfis de acesso</h1><p>Mesmas regras do sistema de coletas e retiradas Retorna Machine.</p></div></div>
+    <div class="card pad">
+      <h3>Arquitetura</h3>
+      <div class="arch">
+        <div class="node"><b>App do técnico</b><small>Celular · offline-first<br>dados no dispositivo até sincronizar</small></div>
+        <div class="arrow">→</div>
+        <div class="node d"><b>API Flask</b><small>PythonAnywhere<br>banco + geração de PDF/XLSX</small></div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Armazenamento de mídia</b><small>Fotos e vídeos via API do Google Drive<br>(acesso só pelo sistema)</small></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="pad" style="padding-bottom:6px"><h3 style="margin:0">Matriz de permissões</h3></div>
+      <div class="tbl-wrap"><table class="perm">
+        <tr><th>Ação</th><th>Técnico</th><th>Coord. campo</th><th>Gestão</th><th>Expansão</th><th>Projetos</th><th>ADM</th><th>Consulta</th></tr>
+        <tr><td>Preencher o próprio cronograma</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td></tr>
+        <tr><td>Ver cronograma de todos</td><td class="nn">só o seu</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="yy">●</td><td class="yy">●</td></tr>
+        <tr><td>Preencher visita, fotos, equipamentos, termos</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td></tr>
+        <tr><td>Ver Eixo 8 (Direitos Humanos)</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td></tr>
+        <tr><td>Ver CPF/RG completos</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="yy">●</td><td class="nn">—</td></tr>
+        <tr><td>Aprovar ou devolver visita</td><td class="nn">—</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td></tr>
+        <tr><td>Ver registros e fotos das visitas</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td><td class="yy">●</td></tr>
+        <tr><td>Editar modelo padrão dos Termos</td><td class="nn">—</td><td class="yy">●</td><td class="yy">●</td><td class="nn">—</td><td class="nn">—</td><td class="yy">●</td><td class="nn">—</td></tr>
+        <tr><td>Cadastrar grupos e usuários</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="nn">—</td><td class="yy">●</td><td class="nn">—</td></tr>
+      </table></div>
+    </div>
+  </section>
+  </main>
+</div>
+
+<div class="modal" id="mTermo"><div class="box">
+  <div class="mh"><b style="font-family:Montserrat">Termo de uso de imagem</b><button data-close="mTermo" style="font-size:20px">×</button></div>
+  <div class="mb">
+    <div class="row2"><div class="fl"><label>Nome completo <span class="req">Obrig.</span></label><input class="field" id="mNome"></div><div class="fl"><label>Profissão</label><input class="field" id="mProf"></div></div>
+    <div class="row2"><div class="fl"><label>Nacionalidade</label><input class="field" id="mNac"></div><div class="fl"><label>Estado civil <span class="req">Obrig.</span></label><select class="field"><option>Solteiro(a)</option><option>Casado(a)</option><option>União estável</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div></div>
+    <div class="row2"><div class="fl"><label>RG <span class="req">Obrig.</span></label><input class="field" placeholder="00.000.000-0"></div><div class="fl"><label>CPF <span class="req">Obrig.</span></label><input class="field" placeholder="000.000.000-00"></div></div>
+    <div class="fl"><label>Endereço (rua, nº, compl., cidade/UF) <span class="req">Obrig.</span></label><input class="field"></div>
+    <div class="fl"><label>Assinatura na tela <span class="muted" style="font-weight:400">— ou anexe o termo assinado em papel</span></label><canvas class="sig" id="sigCoop"></canvas>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;gap:8px;flex-wrap:wrap"><button class="muted" data-clear="sigCoop" style="font-size:12px">Limpar</button><label class="photo-btn">📎 Anexar termo em papel<input type="file" accept="image/*,application/pdf" hidden id="mAnexo"></label></div></div>
+  </div>
+  <div class="mf"><button class="btn ghost" data-close="mTermo">Cancelar</button><button class="btn pri" id="mSave">Salvar termo</button></div>
+</div></div>
+
+<div class="modal" id="mCrono"><div class="box">
+  <div class="mh"><b style="font-family:Montserrat">Novo item do cronograma</b><button data-close="mCrono" style="font-size:20px">×</button></div>
+  <div class="mb">
+    <div class="row2"><div class="fl"><label>Técnico <span class="req">Obrig.</span></label><select class="field" id="nTec"></select></div><div class="fl"><label>Tipo de atividade <span class="req">Obrig.</span></label><select class="field" id="nTipo"><option>Visita Impacta Day</option><option>Retorno ao grupo</option><option>Deslocamento</option><option>Atividade interna</option><option>Outro</option></select></div></div>
+    <div class="row3"><div class="fl"><label>Data <span class="req">Obrig.</span></label><input class="field" id="nData" type="date" value="2026-09-30"></div><div class="fl"><label>Início <span class="req">Obrig.</span></label><input class="field" id="nIni" type="time" value="09:00"></div><div class="fl"><label>Fim <span class="req">Obrig.</span></label><input class="field" id="nFim" type="time" value="12:00"></div></div>
+    <div class="row2" id="nGrpW"><div class="fl"><label>Grupo <span class="req">Obrig.</span></label><select class="field" id="nGrp"><option>ACAMBB</option><option>COOTRAEMPOCAP</option><option>Grupo Recicla Norte</option></select></div><div class="fl"><label>Endereço <span class="req">Obrig.</span></label><select class="field"><option>Matriz</option><option>Filial</option><option>Administrativo</option></select></div></div>
+    <div class="fl"><label>Status <span class="req">Obrig.</span></label><select class="field" id="nSt"><option>Planejado</option><option>Confirmado</option></select></div>
+    <div class="fl"><label>Observação <span class="opt">Opcional</span></label><input class="field" id="nObs"></div>
+  </div>
+  <div class="mf"><button class="btn ghost" data-close="mCrono">Cancelar</button><button class="btn pri" id="nSave">Adicionar</button></div>
+</div></div>
+
+<input type="file" id="filePick" hidden>
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const S={online:true,role:'tecnico'};
+function toast(t,err){const e=$('#toast');e.textContent=t;e.classList.toggle('err',!!err);e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2600)}
+const canEdit=()=>S.role==='tecnico';
+const seesDH=()=>['tecnico','coord','gestao'].includes(S.role);
+const seesCPF=()=>['tecnico','coord','gestao','adm'].includes(S.role);
+const canCrono=()=>['tecnico','coord'].includes(S.role);
+const syncTag=()=>S.online?'<span class="tag ok">Sincronizado</span>':'<span class="tag warn">Na fila</span>';
+
+/* navegação */
+function go(v){$$('.nav').forEach(n=>n.classList.toggle('on',n.dataset.v===v));$$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));window.scrollTo(0,0)}
+$$('.nav').forEach(n=>n.onclick=()=>go(n.dataset.v));
+$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+function openDoc(d){$('#docHome').style.display=d?'none':'';$$('.docpane').forEach(p=>p.classList.toggle('on',p.dataset.d===d));
+  if(d==='relat'){setTimeout(()=>{if(!pads.sigResp.sized){sizePad('sigResp');sizePad('sigTec')}renderReport()},30)}
+  if(d==='decl')setTimeout(()=>{if(!pads.sigDecl.sized)sizePad('sigDecl')},30);
+  if(d==='entrega')renderDeliv();if(!d)renderDocCards();window.scrollTo(0,0)}
+$$('[data-back]').forEach(a=>a.onclick=()=>openDoc(null));
+$$('[data-close]').forEach(b=>b.onclick=()=>$('#'+b.dataset.close).classList.remove('on'));
+
+$('#syncBtn').onclick=()=>{S.online=!S.online;$('#syncBtn').classList.toggle('off',!S.online);
+  $('#syncTxt').textContent=S.online?'Sincronizado':'Offline · salvo no dispositivo';
+  toast(S.online?'Conexão restabelecida: registros enviados ao servidor':'Modo offline: tudo fica salvo no dispositivo até voltar o sinal');renderPhotos();renderEquip()};
+$('#saveBtn').onclick=()=>toast(S.online?'Rascunho salvo e sincronizado':'Rascunho salvo no dispositivo');
+
+/* captura de foto */
+let pickCb=null;
+function pick(accept,cb){const f=$('#filePick');f.value='';f.accept=accept;f.setAttribute('capture','environment');pickCb=cb;f.click()}
+$('#filePick').onchange=e=>{const file=e.target.files[0];if(!file||!pickCb)return;const url=URL.createObjectURL(file);
+  if(file.type.startsWith('image/')){const im=new Image();im.onload=()=>pickCb({url,w:im.naturalWidth,h:im.naturalHeight,type:'img'});im.src=url}else pickCb({url,type:'vid'})};
+const PH_SVG='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-5-5-9 7"/></svg>';
+const tones=['#2f5d50','#3e6b3a','#1c4450','#56642a','#35505e','#4a5a33','#28463f'];
+const fake=i=>({fake:true,bg:`linear-gradient(160deg,${tones[i%7]},${tones[(i+3)%7]})`});
+
+/* EIXOS */
+const EIXOS=[
+ {n:1,t:'Indicadores socioambientais',req:'Com o responsável administrativo/financeiro.',itens:['Prestação de contas e ferramentas de gestão administrativa','Controles de indicadores do processo produtivo (triado/dia, rejeito/dia, produção da prensa)','Total de profissionais da reciclagem (mulheres e homens)','Volume médio total comercializado','Volume médio mensal de rejeitos','Volume e preço médio de plástico, vidro, metal e papel','Faturamento mensal','Principais fontes de entrada de dinheiro','Renda média mensal','Principais despesas mensais']},
+ {n:2,t:'Estrutura física e infraestrutura',req:'Condição de infraestrutura e de limpeza: cobertura, ventilação, iluminação, piso, sinalização, elétrica, armazenamento.',cond:true,itens:['Banheiro/vestiário feminino','Banheiro/vestiário masculino','Cozinha/refeitório','Escritório','Área interna (visão geral do galpão)','Recebimento de resíduos a triar','Área da triagem','Estoque de resíduos a prensar','Área da prensagem','Estoque de prensados (fardos)','Área de volumoso (vidro/sucata/papelão)','Área externa (visão geral)','Fachada']},
+ {n:3,t:'Saúde, segurança e meio ambiente',req:'Registrar condição atual e potenciais riscos.',risco:true,itens:['Proteção individual: uniforme, EPIs usados, dúvidas de uso','Riscos de acidente: atividades de alto risco, movimentação e armazenamento','Prevenção a incêndios: possui extintores, quantos, no prazo, sabem usar','Resíduos perigosos, rejeitos e destino final','Vetores (mosquitos, roedores, animais)','Água potável, poeira, odores e ruídos','Primeiros socorros no local','Avaliação geral do eixo']},
+ {n:4,t:'Operação',req:'Fluxo, controles, comercialização e parcerias.',itens:['Coleta seletiva: quem realiza, caminhão, solta ou embagada, coletores capacitados','Qualidade do material: abastecimento, rejeito, recuperação média','Fluxo produtivo: layout definido, retrabalho','Triagem: como é feita, quantos tipos, equipamentos','Prensagem: estoque a prensar, equipamentos','Organização e limpeza: calendário, práticas de 5S','Comercialização: desafios, estratégias, resíduos sem destino','Postos de trabalho: divisão de tarefas e lideranças','Parcerias estratégicas: benefícios e contrapartidas','Parcerias governamentais: convênio com prefeitura']},
+ {n:5,t:'Regularização documental',req:'Os termos são coletados no documento "Termos de imagem".',itens:['Termos de uso de imagem de todos os cooperados ativos','Lista de profissionais ativos','Documentos específicos solicitados pela governança (se houver)']},
+ {n:6,t:'Registro fotográfico',foto:true,itens:[]},
+ {n:7,t:'Equipamentos',req:'O inventário e as fotos ficam no documento "Equipamentos".',itens:['Inventário preenchido (tipo, quantidade, especificação, capacidade, danos)','Conformidade com as Normas Regulamentadoras','Calendário de limpeza e de manutenção preventiva','Fundo de reserva para manutenção corretiva','Foto de cada equipamento cadastrado']},
+ {n:8,t:'Direitos humanos',dh:true,itens:['Indícios de trabalho infantil, escravo ou forçado','Jornada de trabalho excessiva ou insalubre','Animais com indícios de maus-tratos','Assédio, discriminação ou desigualdade de gênero/raça','Inclusão e diversidade (mulheres, pessoas com deficiência)','Mecanismos de apoio social (canais de denúncia, encaminhamentos)']}];
+const CHK={};EIXOS.forEach(e=>e.itens.forEach((_,i)=>{CHK[e.n+'-'+i]={ok:e.n<=2||(e.n===3&&i<5),obs:'',fotos:[]}}));
+let eixoAtual=1;
+const eixoPct=e=>e.itens.length?Math.round(e.itens.filter((_,i)=>CHK[e.n+'-'+i].ok).length/e.itens.length*100):null;
+function totals(){let t=0,d=0;EIXOS.forEach(e=>{if(e.dh&&!seesDH())return;e.itens.forEach((_,i)=>{t++;if(CHK[e.n+'-'+i].ok)d++})});return[d,t]}
+function renderTabs(){$('#eixoTabs').innerHTML=EIXOS.map(e=>{const p=eixoPct(e);return`<button class="tab ${e.n===eixoAtual?'on':''}" data-e="${e.n}">${e.dh?'🔒 ':''}Eixo ${e.n}${p===null?'':`<span class="pc">${p}%</span>`}</button>`}).join('');
+ $$('#eixoTabs .tab').forEach(b=>b.onclick=()=>{eixoAtual=+b.dataset.e;renderTabs();renderEixo()});const[d,t]=totals();$('#anPct').textContent=`${d} de ${t} itens`}
+function renderEixo(){const e=EIXOS.find(x=>x.n===eixoAtual);let h='';
+ if(e.foto){$('#eixoBody').innerHTML=`<div class="card pad"><b style="font-family:Montserrat">Eixo 6 · Registro fotográfico</b><p class="muted" style="margin:6px 0 14px">Este eixo é preenchido no documento próprio, com as 14 cenas obrigatórias.</p><button class="btn pri" id="toFotos">Abrir registro fotográfico →</button></div>`;$('#toFotos').onclick=()=>openDoc('fotos');return}
+ if(e.dh&&!seesDH()){$('#eixoBody').innerHTML=`<div class="card lockbox"><div style="font-size:34px">🔒</div><h3>Acesso restrito</h3><p>O Eixo 8 é visível apenas para o técnico, a coordenação de campo e a Gestão.</p></div>`;return}
+ if(e.dh)h+=`<div class="conf"><span style="font-size:20px">🔒</span><div><b>Eixo confidencial</b><br><span style="font-size:13px">Preencher só por observação pessoal, sem perguntas diretas ao grupo. Não sai em nenhum material devolvido à cooperativa.</span></div></div>`;
+ else h+=`<div class="info"><b style="font-family:Montserrat">Eixo ${e.n} · ${e.t}</b> — ${e.req}</div>`;
+ h+='<div class="card editable">'+e.itens.map((it,i)=>{const k=e.n+'-'+i,c=CHK[k];let extra='';
+  if(e.cond)extra=`<div class="row2" style="margin-bottom:8px"><select class="field"><option>Infraestrutura…</option><option>Adequada</option><option>Regular</option><option>Inadequada</option><option>Não possui</option></select><select class="field"><option>Limpeza…</option><option>Adequada</option><option>Regular</option><option>Inadequada</option><option>Não possui</option></select></div>`;
+  if(e.risco)extra=`<textarea class="field" placeholder="Condição atual" style="margin-bottom:8px"></textarea>`;
+  return `<div class="ci"><div class="l" data-k="${k}"><span class="cb ${c.ok?'y':''}">${c.ok?'✓':''}</span><label>${it}</label>${c.fotos.length?`<span class="tag blue">📷 ${c.fotos.length}</span>`:''}</div>
+  <div class="ex"><div>${extra}<textarea class="field obs" data-k="${k}" placeholder="${e.dh?'Observação reservada do técnico':e.risco?'Potenciais riscos / observação':'Observação (opcional)'}">${c.obs}</textarea></div>
+  <button class="photo-btn" data-ph="${k}">📷 Foto <span class="opt" style="margin:0">opcional</span></button></div>
+  ${c.fotos.length?`<div class="thumbs">${c.fotos.map(u=>`<img src="${u}">`).join('')}</div>`:''}</div>`}).join('')+'</div>';
+ $('#eixoBody').innerHTML=h;
+ $$('#eixoBody .l').forEach(l=>l.onclick=()=>{if(!canEdit())return;const c=CHK[l.dataset.k];c.ok=!c.ok;renderTabs();renderEixo();refreshKpis()});
+ $$('#eixoBody .obs').forEach(t=>t.oninput=()=>CHK[t.dataset.k].obs=t.value);
+ $$('#eixoBody [data-ph]').forEach(b=>b.onclick=()=>pick('image/*',r=>{CHK[b.dataset.ph].fotos.push(r.url);renderEixo();toast('Foto anexada ao item')}));
+}
+
+/* FOTOS */
+const CENAS=[
+ ['Profissionais juntos','Todos os profissionais da reciclagem juntos, de uniforme se houver.',0],
+ ['Profissionais trabalhando','Alguns profissionais em atividade, ambiente limpo e organizado, uniformes limpos e EPIs (bota, luva).',0],
+ ['Fachada','Visão geral da entrada, com identificação do grupo se houver.',1],
+ ['Área externa · movimentação de carga','Vídeo mostrando a entrada dos resíduos a triar e a saída dos processados, explicando o fluxo e a organização atual.',1],
+ ['Área externa · estoques externos','Vídeo mostrando como a área externa é organizada.',1],
+ ['Estoque a triar / chegada','Vídeo explicando a operação de recebimento.',1],
+ ['Triagem','Vídeo explicando a operação e as particularidades.',1],
+ ['Estoque a prensar / nova segregação','Vídeo explicando a operação e as particularidades.',1],
+ ['Prensagem','Vídeo explicando a operação e as particularidades.',1],
+ ['Estoque final (fardos e volumosos)','Vídeo explicando a operação e as particularidades.',1],
+ ['Refeitório','Visão geral do espaço.',1],
+ ['Banheiro/vestiário feminino','Visão geral do espaço.',1],
+ ['Banheiro/vestiário masculino','Visão geral do espaço.',1],
+ ['Administrativo','Visão geral do escritório.',1]];
+const PH=CENAS.map((c,i)=>({h:i<9?fake(i):null,v:i<8&&i!==4?fake(i+1):null,vid:c[2]&&i<7&&i!==4?{fake:true}:null,na:false,just:''}));
+function sceneReq(i){const c=CENAS[i],p=PH[i];if(p.na)return p.just.trim()?[1,1]:[0,1];const need=2+(c[2]?1:0),got=(p.h?1:0)+(p.v?1:0)+(c[2]&&p.vid?1:0);return[got,need]}
+function phTotals(){let g=0,n=0;PH.forEach((_,i)=>{const[a,b]=sceneReq(i);g+=a;n+=b});return[g,n]}
+function slotHTML(i,kind,label){const p=PH[i][kind];
+ if(p){const inner=p.fake?(kind==='vid'?'<svg width="22" height="22" viewBox="0 0 24 24" fill="#ccff03"><path d="M8 5v14l11-7z"/></svg>':PH_SVG):(p.type==='vid'?'<video src="'+p.url+'" muted style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></video>':'<img src="'+p.url+'">');
+  const bg=kind==='vid'?'var(--ink)':(p.bg||'#222');return`<div class="slot ${kind} fill" data-l="${label}" data-s="${i}" data-k="${kind}" style="background:${bg}">${inner}</div>`}
+ return`<div class="slot ${kind} need" data-s="${i}" data-k="${kind}">＋<br>${label}<span class="rq">${kind==='h'?'OBRIGATÓRIO':'OBRIG.'}</span></div>`}
+function renderPhotos(){
+ $('#photos').innerHTML=CENAS.map(([n,obs,vid],i)=>{const p=PH[i],[g,need]=sceneReq(i),ok=g>=need;
+  return`<div class="card ph ${p.na?'isna':''}"><div class="t"><div><small>Cena ${String(i+1).padStart(2,'0')}</small><br><b>${n}</b></div>${p.na?'<span class="tag">Não possui</span>':ok?'<span class="tag ok">Completa</span>':'<span class="tag warn">Pendente</span>'}</div>
+  <div class="obs"><b>O que a foto deve conter</b>${obs}<br><span style="color:#a8321f;font-weight:600">Obrigatório: foto horizontal + vertical${vid?' + vídeo narrado':''}</span></div>
+  <div class="slots">${slotHTML(i,'h','Horizontal')}${slotHTML(i,'v','Vertical')}${vid?slotHTML(i,'vid','Vídeo'):'<div></div>'}</div>
+  <div class="st"><label class="na"><input type="checkbox" data-na="${i}" ${p.na?'checked':''}> Não possui</label><span class="muted">${p.na?'':g+'/'+need}</span>${g&&!p.na?syncTag():''}</div>
+  ${p.na?`<input class="field" data-just="${i}" placeholder="Justificativa (obrigatória)" value="${p.just}" style="margin-top:8px">`:''}</div>`}).join('');
+ $$('#photos .slot').forEach(s=>s.onclick=()=>{if(!canEdit())return toast('Somente o técnico da visita registra fotos',1);const i=+s.dataset.s,k=s.dataset.k;
+  pick(k==='vid'?'video/*':'image/*',r=>{
+   if(k!=='vid'){const land=r.w>r.h;if(k==='h'&&!land)return toast('Essa foto está na vertical. Use o espaço "Vertical" ou tire na horizontal.',1);if(k==='v'&&land)return toast('Essa foto está na horizontal. Use o espaço "Vertical" só com foto em pé.',1)}
+   PH[i][k]=r;renderPhotos();refreshKpis();toast(S.online?'Registro salvo e sincronizado':'Registro salvo no dispositivo')})});
+ $$('#photos [data-na]').forEach(c=>c.onchange=()=>{if(!canEdit()){c.checked=!c.checked;return}PH[+c.dataset.na].na=c.checked;renderPhotos();refreshKpis()});
+ $$('#photos [data-just]').forEach(c=>c.onchange=()=>{PH[+c.dataset.just].just=c.value;renderPhotos();refreshKpis()});
+ const[g,n]=phTotals();$('#phPct').textContent=`${g} de ${n} registros obrigatórios`}
+
+/* EQUIPAMENTOS */
+const EQ=[{tipo:'Prensa',qtd:2,esp:'Prensa vertical hidráulica 15 t',cap:'15 t',est:'Operando',nr:'Não',foto:fake(2)},{tipo:'Balança',qtd:1,esp:'Balança plataforma 1.500 kg',cap:'1.500 kg',est:'Operando',nr:'Sim',foto:null},{tipo:'Carrinho/paleteira',qtd:3,esp:'Paleteira manual 2 t',cap:'2 t',est:'Operando com danos',nr:'Não avaliado',dano:'Roda traseira quebrada em 1 unidade',foto:null}];
+const eqIcon={Prensa:'🗜',Esteira:'➰','Balança':'⚖️',Empilhadeira:'🏗','Carrinho/paleteira':'🛒','Veículo':'🚚'};
+function renderEquip(){$('#eqList').innerHTML=EQ.map((e,i)=>`<div class="eq">${e.foto?`<div class="slot fill" data-eq="${i}" data-l="Foto" style="background:${e.foto.bg||'#222'}">${e.foto.fake?PH_SVG:`<img src="${e.foto.url}">`}</div>`:`<div class="slot need" data-eq="${i}">＋<br>Foto<span class="rq">OBRIG.</span></div>`}
+ <div><b style="font-family:Montserrat">${eqIcon[e.tipo]||'🔧'} ${e.tipo} × ${e.qtd}</b><div class="muted" style="font-size:12.5px">${e.esp}${e.cap?' · '+e.cap:''}</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><span class="tag ${e.est==='Operando'?'ok':e.est==='Parado'?'red':'warn'}">${e.est}</span><span class="tag">NR: ${e.nr}</span>${e.dano?`<span class="tag red">${e.dano}</span>`:''}</div></div>
+ <div class="act">${e.foto?syncTag():'<span class="tag warn">Foto pendente</span>'}</div></div>`).join('')||'<div class="pad muted">Nenhum equipamento cadastrado.</div>';
+ $$('#eqList [data-eq]').forEach(s=>s.onclick=()=>{if(!canEdit())return toast('Somente o técnico da visita registra fotos',1);pick('image/*',r=>{EQ[+s.dataset.eq].foto=r;renderEquip();refreshKpis();toast('Foto do equipamento salva')})});
+ const n=EQ.filter(e=>e.foto).length;$('#eqPct').textContent=`${n} de ${EQ.length} com foto`}
+$('#eqEst').onchange=e=>$('#eqDanoW').style.display=e.target.value==='Operando'?'none':'';
+$('#eqAdd').onclick=()=>{const esp=$('#eqEsp').value.trim();if(!esp)return toast('Preencha a especificação/modelo',1);if($('#eqEst').value!=='Operando'&&!$('#eqDano').value.trim())return toast('Descreva os danos observados',1);
+ EQ.push({tipo:$('#eqTipo').value,qtd:+$('#eqQtd').value||1,esp,cap:$('#eqCap').value,est:$('#eqEst').value,nr:$('#eqNr').value,dano:$('#eqEst').value==='Operando'?'':$('#eqDano').value,foto:null});
+ $('#eqEsp').value='';$('#eqCap').value='';$('#eqDano').value='';renderEquip();refreshKpis();toast('Equipamento adicionado. Agora registre a foto dele.')};
+
+/* TERMOS */
+const COOPS=[['Maria A. Souza','123.456.789-01',1],['José R. Lima','234.567.890-12',1],['Ana P. Ferreira','345.678.901-23',1],['Carlos E. Santos','456.789.012-34',1],['Luana M. Rocha','567.890.123-45',1],['Pedro H. Alves','678.901.234-56',1],['Rita C. Nunes','789.012.345-67',1],['Joana S. Dias','890.123.456-78',1],['Marcos V. Teixeira','901.234.567-89',1],['Sônia L. Prado','012.345.678-90',1],['Edson F. Moura','111.222.333-44',1],['Cláudia R. Pires','',0],['Antônio B. Melo','',0],['Fernanda O. Reis','',0],['Raimundo J. Costa','',0],['Tatiane G. Luz','',0]];
+const TM={nac:'Brasileira',prof:'Catador(a) de materiais recicláveis',cidade:'Brasília',uf:'DF',data:'2026-09-25',copias:16};
+const mask=c=>c?(seesCPF()?c:'***.***.***-'+c.slice(-2)):'—';
+function renderCoops(){const n=COOPS.filter(c=>c[2]).length;
+ $('#coopTbl').innerHTML='<tr><th>Cooperado(a)</th><th>CPF</th><th>Termo</th><th></th></tr>'+COOPS.map((c,i)=>`<tr><td><b>${c[0]}</b></td><td class="muted">${mask(c[1])}</td><td>${c[2]?'<span class="tag ok">Assinado · 2 vias</span>':'<span class="tag warn">Pendente</span>'}</td><td style="text-align:right">${c[2]?'':`<button class="btn ghost sm editable" data-sign="${i}">Coletar</button>`}</td></tr>`).join('');
+ $('#termCount').textContent=`${n} / ${COOPS.length}`;$('#termBar').style.width=Math.round(n/COOPS.length*100)+'%';$('#tePct').textContent=`${n} de ${COOPS.length} assinados`;
+ $$('[data-sign]').forEach(b=>b.onclick=()=>openTermo(+b.dataset.sign))}
+let signing=null;
+function openTermo(i){signing=i;$('#mNome').value=i!=null?COOPS[i][0]:'';$('#mNac').value=TM.nac;$('#mProf').value=TM.prof;$('#mTermo').classList.add('on');setTimeout(()=>sizePad('sigCoop'),30)}
+$('#addCoop').onclick=()=>openTermo(null);
+$('#mSave').onclick=()=>{const nome=$('#mNome').value.trim();if(!nome)return toast('Informe o nome completo',1);if(!pads.sigCoop.drawn&&!$('#mAnexo').files.length)return toast('Colha a assinatura na tela ou anexe o termo em papel',1);
+ if(signing!=null){COOPS[signing][2]=1;COOPS[signing][1]='999.888.777-66'}else COOPS.push([nome,'999.888.777-66',1]);
+ $('#mTermo').classList.remove('on');$('#mAnexo').value='';renderCoops();refreshKpis();toast(S.online?'Termo salvo e sincronizado':'Termo salvo no dispositivo')};
+$$('[data-tt]').forEach(b=>b.onclick=()=>{$$('[data-tt]').forEach(x=>x.classList.toggle('on',x===b));$('#tt-lista').style.display=b.dataset.tt==='lista'?'':'none';$('#tt-modelo').style.display=b.dataset.tt==='modelo'?'':'none'});
+const fmtD=d=>{if(!d)return'__/__/____';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`};
+const blank=n=>'_'.repeat(n);
+function termoHTML(){return`<div style="font-family:Arial,sans-serif;font-size:12px;line-height:1.8"><p style="text-align:center;font-weight:700;margin-bottom:10px">TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM E SOM</p>
+<p>${blank(34)} (nome completo), <b>${TM.nac}</b> (nacionalidade), ${blank(12)} (estado civil), <b>${TM.prof}</b> (profissão), portador(a) do RG nº ${blank(12)}, inscrito(a) no CPF sob nº ${blank(14)}, residente à ${blank(30)}, nº ${blank(5)}, compl. ${blank(6)}, na cidade de ${blank(14)} do estado de ${blank(4)}, AUTORIZO o uso de imagem e som em todo e qualquer material entre fotos, documentos e outros meios de comunicação, para ser utilizada em campanhas promocionais e institucionais da AMBIPAR ENVIRONMENT RESIDENCIAL COLLECTION SA, CNPJ 10.652.751/0001-46, e seus parceiros […]</p>
+<p style="margin-top:10px">${TM.cidade}/${TM.uf}, ${fmtD(TM.data)}</p><p style="margin-top:26px;text-align:center">${blank(40)}<br>Assinatura</p></div>`}
+function renderModel(){$$('.tm').forEach(i=>i.value=TM[i.dataset.k]);$('#tmPrev').innerHTML=termoHTML()}
+$$('.tm').forEach(i=>i.oninput=()=>{TM[i.dataset.k]=i.value;$('#tmPrev').innerHTML=termoHTML()});
+$('#tmSave').onclick=()=>{if(!['coord','gestao','adm','tecnico'].includes(S.role))return toast('Seu perfil não edita o modelo',1);toast('Modelo padrão salvo. Vale para as próximas impressões.')};
+$('#tmPrint').onclick=()=>{const n=Math.max(1,+TM.copias||1),v=$('#tmVias').checked?2:1;let h='';for(let i=0;i<n*v;i++)h+=`<div class="pbreak" style="padding:30px">${termoHTML()}<p style="font-size:10px;color:#888;margin-top:20px">Via ${i%v+1} de ${v}</p></div>`;$('#printArea').innerHTML=h;window.print()};
+
+/* DECLARAÇÃO */
+const OPT={sn:['Sim','Não'],ton:['Zero','Até 10','Entre 11 e 20','Entre 21 e 50','Entre 51 e 100','Acima de 100'],per:['Diariamente','Semanalmente','Quinzenalmente','Mensalmente','Esporádico'],freq:['Não se aplica','Menor que 1 vez na semana','Semanalmente','Quinzenalmente','Trimestralmente','Semestralmente','Anualmente','Maior que uma vez ao ano'],op:['Organização de catadores','Operador Privado','Entreposto'],lic:['Não','Em processo de obtenção','Sim'],comp:['Fabricantes','Recicladores','Intermediários','Entreposto','Outros']};
+const sel=(o,v)=>`<select class="field"><option value="">Escolher um item</option>${OPT[o].map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('')}</select>`;
+const inp=(p,v='')=>`<input class="field" placeholder="${p}" value="${v}">`;
+const R='<span class="req">Obrigatório</span>',C='<span class="req" style="background:#fff3d6;color:#8a5d00">Condicional</span>',O='<span class="opt">Opcional</span>';
+const cbs=a=>a.map(x=>`<label style="display:inline-flex;gap:6px;margin:0 12px 6px 0;font-weight:400"><input type="checkbox"> ${x}</label>`).join('');
+const DECL=[
+ ['1. Identificação (vem do cadastro do grupo)',[['Razão Social',R,inp('Razão social','ACAMBB')],['CNPJ',R,inp('00.000.000/0000-00')],['Tipo de operador logístico',R,sel('op','Organização de catadores')],['Faz parte de rede de cooperativas?',R,sel('sn','Sim')],['Nome da rede',C,inp('Rede','Rede Candanga')]]],
+ ['2. Estrutura operacional',[['Trabalhadores (mulheres / homens)',R,`<div class="row2">${inp('Mulheres','9')}${inp('Homens','7')}</div>`],['Horas semanais por trabalhador',R,inp('h/semana','44')],['Periodicidade de comercialização',R,sel('per','Semanalmente')],['Papel/papelão (t/mês)',R,sel('ton','Entre 21 e 50')],['Plástico (t/mês)',R,sel('ton','Entre 11 e 20')],['Vidro (t/mês)',R,sel('ton','Até 10')],['Metal (t/mês)',R,sel('ton','Até 10')],['Tria aerossol sem contar como metal?',R,sel('sn')],['Prensas / balanças (do inventário)',R,`<div class="row2">${inp('Prensas','2')}${inp('Balanças','1')}</div>`],['Balança com calibração vigente?',R,sel('sn')]]],
+ ['3. Saúde, segurança e ambiente de trabalho',[['Treinamento de EPI?',R,sel('sn')],['Frequência dos treinamentos',C,sel('freq')],['Frequência de troca de EPIs',R,sel('freq')],['A unidade de triagem possui',O,cbs(['Cobertura sem buracos','Extintor na validade','Saídas desobstruídas','Piso impermeável','Iluminação adequada','Exaustores'])],['Licença ambiental de operação',R,sel('lic')]]],
+ ['4. Origem e destino de resíduos',[['Recebe da coleta convencional de prefeitura?',R,sel('sn','Não')],['Recebe da coleta seletiva de prefeitura?',R,sel('sn')],['Prefeituras atendidas (t/mês)',C,`<div class="row2">${inp('Prefeitura')}${inp('t/mês')}</div>`],['Recebe de empresas privadas?',R,sel('sn')],['Caminhões próprios (porta a porta)',R,inp('Qtd.','0')],['Principais compradores',R,sel('comp','Intermediários')]]],
+ ['5. Programas e parcerias',[['Entidades gestoras atendidas',O,inp('Ex.: Ambipar')],['Faz parte de',O,cbs(['MNCR','ANCAT','CEMPRE','ASLORE','Outro'])],['Apoio de ONG / prefeitura / empresa',O,'<textarea class="field" placeholder="Quem apoia, tipo de apoio, valores e benfeitorias"></textarea>']]],
+ ['6. Conclusão',[['Capacidade e produção média',R,'<span class="muted" style="font-size:12.5px">Preenchidas no quadro "Capacidade operacional do grupo", no topo.</span>'],['Data de aferição',R,'<input class="field" type="date" value="2026-09-25">'],['Assinatura do técnico',R,'<canvas class="sig" id="sigDecl" style="height:100px"></canvas>']]]];
+$('#decl').innerHTML=`<div class="pad" style="border-bottom:1px solid var(--line);background:#fafdf0;font-size:13px">Use "Não aplicável", "N/A" ou "Não possui" quando for o caso. <b style="color:var(--danger)">Sem assinatura o documento não é aceito.</b></div>`+DECL.map(([t,rows])=>`<div class="pad" style="padding-bottom:0"><h3 style="color:var(--green-d)">${t}</h3></div>${rows.map(([l,r,f])=>`<div class="ci dq"><label style="font-weight:600;font-size:13px">${l} ${r}</label><div>${f}</div></div>`).join('')}`).join('');
+['capAno','capDia'].forEach(id=>$('#'+id).oninput=refreshKpis);
+
+/* ASSINATURAS */
+const pads={};
+function makePad(id){const cv=$('#'+id);const cx=cv.getContext('2d');const p={cv,cx,drawn:false,sized:false};pads[id]=p;let d=false;
+ const pos=e=>{const r=cv.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
+ cv.onpointerdown=e=>{if(!p.sized)sizePad(id);d=true;cx.beginPath();cx.moveTo(...pos(e))};
+ cv.onpointermove=e=>{if(!d)return;cx.lineTo(...pos(e));cx.stroke();p.drawn=true;cv.classList.add('sigok')};
+ window.addEventListener('pointerup',()=>{if(d&&(id==='sigResp'||id==='sigTec'))renderReport();d=false})}
+function sizePad(id){const p=pads[id];const r=p.cv.getBoundingClientRect();if(!r.width)return;p.cv.width=r.width*devicePixelRatio;p.cv.height=r.height*devicePixelRatio;p.cx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);p.cx.lineWidth=2.2;p.cx.lineCap='round';p.cx.strokeStyle='#0d1720';p.drawn=false;p.sized=true;p.cv.classList.remove('sigok')}
+['sigCoop','sigResp','sigTec','sigDecl'].forEach(makePad);
+$$('[data-clear]').forEach(b=>b.onclick=()=>{sizePad(b.dataset.clear);if(b.dataset.clear!=='sigCoop'){REP.saved=false;renderReport()}});
+
+/* RELATÓRIO */
+const REP={saved:false};
+function repOk(){return $('#respNome').value.trim()&&$('#respCpf').value.trim()&&$('#tecCpf').value.trim()&&pads.sigResp.drawn&&pads.sigTec.drawn}
+function phThumb(p){if(!p)return'<div class="rph">sem foto</div>';if(p.fake)return`<div class="rph" style="background:${p.bg}">${PH_SVG}</div>`;return`<div class="rph"><img src="${p.url}"></div>`}
+function reportHTML(){const sec=(t,idx)=>`<h4>${t}</h4><div class="rgrid">${idx.map(i=>PH[i].na?`<div class="rph">Não possui</div>`:phThumb(PH[i].h)+phThumb(PH[i].v)).join('')}</div>`;
+ const sig=id=>pads[id]&&pads[id].drawn?`<img src="${pads[id].cv.toDataURL()}">`:'';
+ return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div style="font:800 17px Montserrat">Relatório de Campo – Impacta Day</div><div class="muted">Análise situacional · Registro fotográfico</div></div><span class="tag dark">ACAMBB</span></div>
+ <h4>1. Identificação</h4><div class="ident"><span><b>Razão Social:</b> ACAMBB</span><span><b>CNPJ:</b> —</span><span><b>Tipo de operador:</b> Organização de catadores</span><span><b>Endereço:</b> Matriz · SCIA Q. 9 Cj. 01 Lote 02</span><span><b>Técnico:</b> ${$('#tecNome').value}</span><span><b>Data:</b> 25/09/2026</span></div>
+ ${sec('2. Fachada',[2])}${sec('3. Escritório',[13])}${sec('4. Banheiros',[11,12])}${sec('5. Refeitório',[10])}${sec('6. Galpão e demais áreas',[3,4,5,6,7,8,9])}
+ <h4>7. Equipamentos</h4><div class="rgrid">${EQ.map(e=>`<div>${phThumb(e.foto)}<div style="font-size:10.5px;margin-top:3px"><b>${e.tipo} × ${e.qtd}</b><br>${e.esp}</div></div>`).join('')}</div>
+ <h4>8. Informações complementares</h4><p>${$('#repInfo').value.trim()||'<span class="muted">Sem informações complementares.</span>'}</p>
+ <div class="sigs" style="margin-top:70px"><div>${sig('sigResp')}${$('#respNome').value||'Nome do responsável'}<br>CPF ${$('#respCpf').value||'___.___.___-__'}<br><span class="muted">Responsável do grupo / quem atendeu</span></div><div>${sig('sigTec')}${$('#tecNome').value}<br>CPF ${$('#tecCpf').value||'___.___.___-__'}<br><span class="muted">Técnico responsável</span></div></div>`}
+function renderReport(){$('#repPrev').innerHTML=reportHTML();$('#rePct').textContent=REP.saved?'Salvo':repOk()?'Pronto para salvar':'Faltam dados ou assinaturas';$('#rePct').className='tag '+(REP.saved?'ok':repOk()?'lime':'warn')}
+$$('.rf,#repInfo').forEach(i=>i.oninput=()=>{REP.saved=false;renderReport()});
+$('#repSave').onclick=()=>{if(!repOk())return toast('Preencha nome, CPF e as duas assinaturas',1);REP.saved=true;renderReport();refreshKpis();toast('Relatório de Campo salvo na visita')};
+$('#repPdf').onclick=()=>{if(!REP.saved)return toast('Salve o relatório com as assinaturas antes de exportar',1);$('#printArea').innerHTML=`<div class="rep">${reportHTML()}</div>`;window.print()};
+
+/* CARTÕES */
+function docStats(){const[a,t]=totals(),[g,n]=phTotals(),eq=EQ.filter(e=>e.foto).length,te=COOPS.filter(c=>c[2]).length,cap=$('#capAno').value&&$('#capDia').value;
+ return[['analise','📋','Análise Situacional','Checklist dos 8 eixos, com observação e foto por item.',a,t],
+  ['fotos','📷','Registro fotográfico','14 cenas com foto H + V e vídeos obrigatórios.',g,n],
+  ['equip','🗜','Equipamentos','Inventário do grupo e foto de cada equipamento.',eq,EQ.length],
+  ['termos','✍️','Termos de imagem','Modelo padrão para imprimir e coleta das assinaturas.',te,COOPS.length],
+  ['decl','📄','Declaração de Capacidade','Estrutura, resíduos, SST e capacidade operacional.',cap?1:0,1],
+  ['relat','🧾','Relatório de Campo','Montado automaticamente; assinaturas e PDF.',REP.saved?1:0,1],
+  ['entrega','📨','Entrega','Checklist e e-mail de conclusão da visita.',null,null]]}
+function renderDocCards(){$('#docCards').innerHTML=docStats().map(([k,ic,t,d,a,b])=>{const pct=b?Math.round(a/b*100):null;
+ return`<button class="card doc" data-doc="${k}"><div style="display:flex;justify-content:space-between;align-items:center"><span class="di">${ic}</span>${pct===null?'':pct===100?'<span class="tag ok">Completo</span>':'<span class="tag warn">'+pct+'%</span>'}</div><b>${t}</b><p>${d}</p>${pct===null?'<div class="ft"><span class="muted">Confira antes de enviar</span><span>Abrir →</span></div>':`<div class="bar"><i style="width:${pct}%"></i></div><div class="ft"><span class="muted">${k==='decl'||k==='relat'?(a?'Concluído':'Pendente'):a+' de '+b}</span><span>Abrir →</span></div>`}</button>`}).join('');
+ $$('[data-doc]').forEach(c=>c.onclick=()=>openDoc(c.dataset.doc))}
+
+/* ENTREGA */
+function delivItems(){const[a,t]=totals(),[g,n]=phTotals(),te=COOPS.filter(c=>c[2]).length;
+ return[['Análise Situacional preenchida (8 eixos)',a===t],['Declaração preenchida, com capacidade operacional',!!($('#capAno').value&&$('#capDia').value)],['Relatório de Campo gerado e assinado',REP.saved],[`Termos de imagem de todos os ativos (${te}/${COOPS.length})`,te===COOPS.length],['Registro fotográfico completo',g===n],['Inventário de equipamentos com fotos',EQ.every(e=>e.foto)],['Informações complementares registradas no relatório',true]]}
+function renderDeliv(){const it=delivItems();$('#delivChk').innerHTML=it.map(([t,ok])=>`<div class="chk"><span class="cb ${ok?'y':''}">${ok?'✓':''}</span>${t}</div>`).join('');$('#sendBtn').disabled=!it.every(i=>i[1]);
+ const te=COOPS.filter(c=>c[2]).length;$('#mailPrev').textContent=`Assunto: Impacta Day – ACAMBB – Visita de campo realizada\n\nOlá, informo que a visita de campo à ACAMBB foi realizada em 25/09/2026 e os registros estão disponíveis no sistema.\n\nChecklist de entrega: Análise Situacional preenchida; Declaração de Capacidade Operacional assinada; Relatório de Campo assinado; ${te} Termos de Uso de Imagem assinados e digitalizados; inventário de equipamentos com fotos.\n\nInformações complementares: ${$('#repInfo').value.trim()||'Sem informações complementares.'}\n\n${$('#tecNome').value}`}
+$('#mailCopy').onclick=()=>{try{navigator.clipboard.writeText($('#mailPrev').textContent)}catch(e){}toast('Texto do e-mail copiado')};
+$('#sendBtn').onclick=()=>toast('Visita enviada para a coordenação');
+
+/* KPIs */
+function refreshKpis(){const[a,t]=totals(),[g,n]=phTotals(),te=COOPS.filter(c=>c[2]).length,eqp=EQ.filter(e=>e.foto).length/Math.max(1,EQ.length);
+ $('#kEix').textContent=`${a} / ${t}`;$('#kEixB').style.width=a/t*100+'%';$('#kPh').textContent=`${g} / ${n}`;$('#kPhB').style.width=g/n*100+'%';$('#kTe').textContent=`${te} / ${COOPS.length}`;$('#kTeB').style.width=te/COOPS.length*100+'%';
+ const pct=Math.round((a/t+g/n+te/COOPS.length+eqp)/4*100);$('#ringPct').textContent=pct+'%';$('#ringArc').setAttribute('stroke-dashoffset',314-314*pct/100);renderDocCards()}
+
+/* CRONOGRAMA */
+const TECS=[['Matheus C.','MC'],['Ana R.','AR'],['Bruno L.','BL']];
+const DAYS=['2026-09-28','2026-09-29','2026-09-30','2026-10-01','2026-10-02'];
+const CR=[
+ {t:0,d:'2026-09-28',i:'08:00',f:'12:00',tipo:'Visita Impacta Day',g:'ACAMBB',st:'Concluído'},
+ {t:0,d:'2026-09-29',i:'14:00',f:'17:00',tipo:'Atividade interna',g:'',st:'Concluído',obs:'Revisão dos registros'},
+ {t:0,d:'2026-10-01',i:'09:00',f:'12:00',tipo:'Retorno ao grupo',g:'ACAMBB',st:'Confirmado',obs:'Coletar 5 termos pendentes'},
+ {t:1,d:'2026-09-28',i:'09:00',f:'12:00',tipo:'Visita Impacta Day',g:'Coop. Vida Nova',st:'Concluído'},
+ {t:1,d:'2026-09-30',i:'09:00',f:'12:00',tipo:'Visita Impacta Day',g:'COOTRAEMPOCAP',st:'Reagendado',obs:'Grupo sem operação no dia; remarcado para 02/10'},
+ {t:1,d:'2026-10-02',i:'09:00',f:'12:30',tipo:'Visita Impacta Day',g:'COOTRAEMPOCAP',st:'Confirmado'},
+ {t:2,d:'2026-09-29',i:'08:30',f:'10:00',tipo:'Deslocamento',g:'',st:'Concluído'},
+ {t:2,d:'2026-09-29',i:'10:00',f:'13:00',tipo:'Visita Impacta Day',g:'Assoc. Mãos Unidas',st:'Concluído'},
+ {t:2,d:'2026-10-01',i:'09:00',f:'12:00',tipo:'Visita Impacta Day',g:'Grupo Recicla Norte',st:'Planejado'},
+ {t:2,d:'2026-10-02',i:'14:00',f:'16:00',tipo:'Atividade interna',g:'',st:'Planejado'}];
+let cView='semana',cDay='2026-10-01';
+const stCls={'Concluído':'Conc','Reagendado':'Reag','Cancelado':'Canc','Em andamento':'Andam','Planejado':'Plan','Confirmado':''};
+const dnames=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const iso=dt=>`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+function evHTML(e){return`<div class="ev s-${stCls[e.st]}"><b>${e.i}–${e.f} · ${e.g||e.tipo}</b>${e.g?e.tipo+' · ':''}${e.st}${e.obs?`<br><span class="muted">${e.obs}</span>`:''}</div>`}
+function vis(){const f=$('#cTec').value;if(S.role==='tecnico')return[0];if(f!=='')return[+f];return TECS.map((_,i)=>i)}
+function renderCrono(){const tl=vis();const items=CR.filter(e=>tl.includes(e.t));let h='';
+ if(cView==='semana'){h=`<div class="wk"><div class="hd">Técnico</div>${DAYS.map((d,i)=>`<div class="hd">${dnames[i]} ${d.slice(8)}/${d.slice(5,7)}</div>`).join('')}`;
+  tl.forEach(t=>{h+=`<div class="tc"><span class="avatar">${TECS[t][1]}</span>${TECS[t][0]}</div>`+DAYS.map(d=>`<div>${items.filter(e=>e.t===t&&e.d===d).sort((a,b)=>a.i.localeCompare(b.i)).map(evHTML).join('')}</div>`).join('')});h+='</div>'}
+ else if(cView==='dia'){h=`<div class="pad" style="display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line)">${DAYS.map((d,i)=>`<button class="tab ${d===cDay?'on':''}" data-day="${d}">${dnames[i]} ${d.slice(8)}/${d.slice(5,7)}</button>`).join('')}</div>`;
+  h+=tl.map(t=>{const ev=items.filter(e=>e.t===t&&e.d===cDay).sort((a,b)=>a.i.localeCompare(b.i));return`<div class="pad dayrow"><div class="tc"><span class="avatar">${TECS[t][1]}</span>${TECS[t][0]}</div><div>${ev.length?ev.map(evHTML).join(''):'<span class="muted">Sem atividades no dia</span>'}</div></div>`}).join('')}
+ else{h='<div class="pad" style="padding:12px 16px;border-bottom:1px solid var(--line);font:700 14px Montserrat">Outubro de 2026</div><div class="mo">'+dnames.map(d=>`<div style="min-height:0;font-weight:600;color:var(--muted);font-size:11.5px;background:#fafbf8">${d}</div>`).join('');
+  const start=new Date(2026,8,28);for(let k=0;k<35;k++){const dt=new Date(start);dt.setDate(start.getDate()+k);const ds=iso(dt);const off=dt.getMonth()!==9;const ev=items.filter(e=>e.d===ds);
+   h+=`<div class="${off?'off':''}"><span class="dn">${dt.getDate()}</span>${ev.slice(0,3).map(e=>`<span class="pill" style="${e.st==='Reagendado'?'background:#fff3d6;color:#8a5d00':e.st==='Concluído'?'background:#e3f5e7;color:#1f7a37':''}">${TECS[e.t][1]} · ${e.g||e.tipo}</span>`).join('')}${ev.length>3?`<span class="muted" style="font-size:10.5px">+${ev.length-3}</span>`:''}</div>`}h+='</div>'}
+ $('#cBody').innerHTML=h;$$('[data-day]').forEach(b=>b.onclick=()=>{cDay=b.dataset.day;renderCrono()});
+ const by=st=>items.filter(e=>e.st===st).length,today='2026-09-30',late=items.filter(e=>e.d<today&&!['Concluído','Cancelado','Reagendado'].includes(e.st)).length;
+ $('#cKpis').innerHTML=[['Itens na semana',items.length,''],['Concluídos',by('Concluído'),'ok'],['Reagendados',by('Reagendado'),'warn'],['Atrasados',late,late?'red':'ok']].map(([l,v,c])=>`<div class="card kpi"><span>${l}</span><b>${v}</b>${c?`<span class="tag ${c}">${l==='Atrasados'?(v?'Atenção':'Em dia'):l}</span>`:'<span class="tag">28/09 a 02/10</span>'}</div>`).join('');
+ $('#cTbl').innerHTML='<tr><th>Técnico</th><th>Planejados</th><th>Concluídos</th><th>Reagendados</th><th>Próximo item</th><th>Andamento</th></tr>'+tl.map(t=>{const ev=CR.filter(e=>e.t===t),c=ev.filter(e=>e.st==='Concluído').length,nx=ev.filter(e=>!['Concluído','Cancelado','Reagendado'].includes(e.st)).sort((a,b)=>(a.d+a.i).localeCompare(b.d+b.i))[0];
+  return`<tr><td><b>${TECS[t][0]}</b></td><td>${ev.length}</td><td>${c}</td><td>${ev.filter(e=>e.st==='Reagendado').length}</td><td class="muted">${nx?nx.d.slice(8)+'/'+nx.d.slice(5,7)+' · '+(nx.g||nx.tipo):'—'}</td><td style="min-width:120px"><div class="bar"><i style="width:${c/ev.length*100}%"></i></div></td></tr>`}).join('')}
+$$('#cView button').forEach(b=>b.onclick=()=>{cView=b.dataset.c;$$('#cView button').forEach(x=>x.classList.toggle('on',x===b));renderCrono()});
+$('#cTec').innerHTML+=TECS.map((t,i)=>`<option value="${i}">${t[0]}</option>`).join('');$('#cTec').onchange=renderCrono;
+$('#nTec').innerHTML=TECS.map((t,i)=>`<option value="${i}">${t[0]}</option>`).join('');
+$('#nTipo').onchange=e=>$('#nGrpW').style.display=['Visita Impacta Day','Retorno ao grupo'].includes(e.target.value)?'':'none';
+$('#cAdd').onclick=()=>{if(!canCrono())return toast('Seu perfil só visualiza o cronograma',1);$('#nTec').disabled=S.role==='tecnico';if(S.role==='tecnico')$('#nTec').value='0';$('#mCrono').classList.add('on')};
+$('#nSave').onclick=()=>{const it={t:+$('#nTec').value,d:$('#nData').value,i:$('#nIni').value,f:$('#nFim').value,tipo:$('#nTipo').value,g:$('#nGrpW').style.display==='none'?'':$('#nGrp').value,st:$('#nSt').value,obs:$('#nObs').value};
+ if(!it.d)return toast('Informe a data',1);if(it.f<=it.i)return toast('O horário de fim deve ser depois do início',1);
+ const clash=CR.find(e=>e.t===it.t&&e.d===it.d&&!(it.f<=e.i||it.i>=e.f));CR.push(it);$('#mCrono').classList.remove('on');renderCrono();toast(clash?'Item adicionado. Atenção: conflito de horário com outro item.':'Item adicionado ao cronograma',!!clash)};
+
+/* PERFIS */
+$('#role').onchange=e=>{S.role=e.target.value;document.body.classList.toggle('ro',!canEdit());
+ const showInt=['adm','gestao'].includes(S.role);$('#navInt').style.display=showInt?'':'none';$('#lblSis').style.display=showInt?'':'none';
+ if(!showInt&&$('#v-integracao').classList.contains('on'))go('painel');
+ $('#cTec').style.display=S.role==='tecnico'?'none':'';$('#cAdd').style.display=canCrono()?'':'none';
+ renderTabs();renderEixo();renderCoops();renderCrono();refreshKpis();if(e.isTrusted)toast('Perfil: '+e.target.selectedOptions[0].text)};
+
+renderTabs();renderEixo();renderPhotos();renderEquip();renderCoops();renderModel();
+$('#role').dispatchEvent(new Event('change'));
+</script>
+</body>
+</html>
