@@ -3,7 +3,7 @@ import { PageHead } from '@/components/ui';
 import { PERFIS, PERM_GRUPOS, TEMPLATES } from '@/lib/permissions';
 import type { PerfilBase } from '@/lib/types';
 
-const ORDEM: PerfilBase[] = ['tecnico', 'coord', 'gestao', 'adm', 'consulta'];
+const ORDEM: PerfilBase[] = ['tecnico', 'coord', 'gestao', 'adm'];
 
 const FASES = [
   { t: 'Fase 1 · Protótipo funcional', st: 'Agora', d: 'Este sistema: login por perfil, cronograma, visitas DCO, Programa de Aceleração, Cidades Circular, histórico com Excel e ZIP. Dados salvos no navegador para a apresentação.' },
@@ -50,7 +50,7 @@ export default function IntegracaoPage() {
             <thead><tr><th>Acesso</th>{ORDEM.map((p) => <th key={p} className="!text-center">{PERFIS[p].nome}</th>)}</tr></thead>
             <tbody>
               {PERM_GRUPOS.map((g) => [
-                <tr key={g.grupo}><td colSpan={6} className="!bg-[#fafbf8] font-semibold text-[12px] uppercase tracking-[.4px] muted">{g.grupo}</td></tr>,
+                <tr key={g.grupo}><td colSpan={5} className="!bg-[#fafbf8] font-semibold text-[12px] uppercase tracking-[.4px] muted">{g.grupo}</td></tr>,
                 ...g.itens.map((i) => (
                   <tr key={i.k}>
                     <td className="text-[13px]">{i.t}</td>

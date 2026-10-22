@@ -13,6 +13,7 @@ import { AmbiparIcon } from '@/components/brand/Brand';
 import { Avatar, confirmar, toast } from '@/components/ui';
 import { cn } from '@/lib/utils';
 import { mondayOf, today, weekLabel } from '@/lib/dates';
+import { pendentes, podeAprovar } from '@/lib/hierarquia';
 
 interface NavItem { to: string; label: string; icon: ReactNode; show: (has: (k: PermKey) => boolean) => boolean; count?: number }
 
@@ -37,6 +38,9 @@ export default function Shell() {
 
   const rascunhos = scope.visitas.filter((v) => v.tecnicoId === me.id && (v.status === 'rascunho' || v.status === 'devolvida')).length;
   const aAprovar = has('visitas.aprovar') ? scope.visitas.filter((v) => v.status === 'enviada').length : 0;
+  const crono = useDB((s) => s.crono);
+  const users = useDB((s) => s.users);
+  const pedidos = crono.flatMap((c) => pendentes(c).filter((p) => { const u = users.find((x) => x.id === p); return u && podeAprovar(me, u); })).length;
   const minhas = tarefas.filter((t) => t.responsavel === 'u:' + me.id && t.status !== 'Concluída').length;
 
   const groups: { lbl: string; items: NavItem[] }[] = [
@@ -44,7 +48,7 @@ export default function Shell() {
       lbl: 'Operação',
       items: [
         { to: '/painel', label: 'Painel', icon: <LayoutDashboard />, show: (h) => h('painel.ver') },
-        { to: '/cronograma', label: 'Cronograma de campo', icon: <CalendarDays />, show: (h) => h('crono.proprio') || h('crono.todos') },
+        { to: '/cronograma', label: 'Cronograma de campo', icon: <CalendarDays />, show: (h) => h('crono.proprio') || h('crono.todos'), count: pedidos },
         { to: '/visitas', label: has('visitas.preencher') && !has('visitas.verTodas') ? 'Minhas visitas DCO' : 'Visitas DCO', icon: <ClipboardCheck />, show: (h) => h('visitas.preencher') || h('visitas.verTodas'), count: rascunhos + aAprovar },
         { to: '/demandas', label: 'Minhas demandas', icon: <ListTodo />, show: (h) => h('cidades.atualizarProprias'), count: minhas },
       ],
@@ -119,7 +123,7 @@ export default function Shell() {
           </span>
         </button>
 
-        {meusProjetos.length > 1 && (
+        {meusProjetos.length >= 1 && (
           <div className="filtro">
             <Filter className="w-4 h-4 text-[#9fb6a3] flex-none" />
             {tipos.length > 1 && (
@@ -135,7 +139,7 @@ export default function Shell() {
               </select>
             )}
             <select id="filtro-projeto" aria-label="Projeto" value={filtroProjeto} onChange={(e) => mut((d) => { d.filtroProjeto = e.target.value; })}>
-              <option value="">{filtroTipo ? 'Todos deste tipo' : 'Todos os projetos'}</option>
+              <option value="">{filtroTipo ? 'Todos deste tipo' : scope.todos ? 'Todos os projetos' : 'Todos os meus projetos'}</option>
               {opcoesProjeto.map((p) => (
                 <option key={p.id} value={p.id}>{p.nome}</option>
               ))}

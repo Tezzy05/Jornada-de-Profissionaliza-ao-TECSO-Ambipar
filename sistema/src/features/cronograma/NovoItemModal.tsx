@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useDB } from '@/store/db';
 import { useMe, useScope } from '@/store/scope';
-import { can } from '@/lib/permissions';
-import { today } from '@/lib/dates';
-import { uid } from '@/lib/utils';
-import type { ItemCrono } from '@/lib/types';
+import { modoInclusao, NOME_NIVEL, nivel } from '@/lib/hierarquia';
+import { nowISO, today } from '@/lib/dates';
+import { cn, uid } from '@/lib/utils';
+import type { ItemCrono, Usuario } from '@/lib/types';
+import { Avatar } from '@/components/ui';
 import { Field, Modal, toast } from '@/components/ui';
 import { TIPOS, TIPOS_COM_GRUPO } from './logic';
 
@@ -12,9 +13,14 @@ export default function NovoItemModal({ open, init, onClose }: { open: boolean; 
   const me = useMe()!;
   const scope = useScope();
   const db = useDB();
-  const editaOutros = can(me, 'crono.editarTodos');
+  // pessoas em cujo cronograma posso incluir (direto ou por pedido de aprovação)
+  const possiveis = db.users
+    .filter((u) => u.ativo && (u.perfil !== 'adm' || u.id === me.id) && modoInclusao(me, u) !== 'bloqueado')
+    .sort((a, b) => Number(b.id === me.id) - Number(a.id === me.id) || nivel(b) - nivel(a) || a.nome.localeCompare(b.nome));
+  const rotulo = (u: Usuario) => `${u.id === me.id ? 'Meu cronograma' : u.nome}${u.perfil !== 'tecnico' && u.id !== me.id ? ` · ${NOME_NIVEL[u.perfil]}` : ''}${modoInclusao(me, u) === 'pedido' ? ' · pedido de aprovação' : ''}`;
   const blank = () => ({
-    tecnicoId: init.tecnicoId ?? (editaOutros ? scope.tecnicos[0]?.id ?? me.id : me.id),
+    tecnicoId: init.tecnicoId && possiveis.some((u) => u.id === init.tecnicoId) ? init.tecnicoId : me.perfil === 'adm' ? possiveis.find((u) => u.id !== me.id)?.id ?? me.id : me.id,
+    participantes: [] as string[],
     tipo: 'Visita DCO' as ItemCrono['tipo'],
     data: init.data ?? today(),
     ini: '09:00',
@@ -43,13 +49,22 @@ export default function NovoItemModal({ open, init, onClose }: { open: boolean; 
     if (comGrupo && !f.coopId && f.tipo !== 'Ação Cidades Circular') return toast('Escolha a cooperativa', true);
     if (f.tipo === 'Ação Cidades Circular' && !f.projetoId) return toast('Escolha o projeto do Cidades Circular', true);
     const projetoId = f.projetoId || db.projetos.find((p) => p.coops.includes(f.coopId) && p.tecnicos.includes(f.tecnicoId))?.id || undefined;
+    const parts = f.participantes.filter((p) => p !== f.tecnicoId);
+    const aprov: NonNullable<ItemCrono['aprov']> = {};
+    [f.tecnicoId, ...parts].forEach((p) => {
+      const u = db.users.find((x) => x.id === p)!;
+      if (modoInclusao(me, u) === 'pedido') aprov[p] = { st: 'pendente', em: nowISO() };
+    });
     const it: ItemCrono = {
       id: 'cr_' + uid(), tecnicoId: f.tecnicoId, tipo: f.tipo, data: f.data, ini: f.ini, fim: f.fim, status: f.status,
       coopId: comGrupo ? f.coopId || undefined : undefined, projetoId, endereco: comGrupo ? f.endereco : undefined, obs: f.obs || undefined,
+      criadoPor: me.id, participantes: parts.length ? parts : undefined, aprov: Object.keys(aprov).length ? aprov : undefined,
     };
     const clash = db.crono.find((e) => e.tecnicoId === it.tecnicoId && e.data === it.data && e.status !== 'Cancelado' && e.status !== 'Reagendado' && !(it.fim <= e.ini || it.ini >= e.fim));
     db.mut((d) => { d.crono.push(it); });
-    toast(clash ? 'Item incluído. Atenção: há conflito de horário com outro item.' : 'Item incluído no cronograma', !!clash);
+    const pend = Object.keys(aprov).map((p) => db.users.find((u) => u.id === p)?.nome.split(' ')[0]);
+    if (pend.length) toast(`Pedido enviado para aprovação de ${pend.join(', ')}. Acompanhe em Eventos Solicitados.`);
+    else toast(clash ? 'Item incluído. Atenção: há conflito de horário com outro item.' : 'Item incluído no cronograma', !!clash);
     onClose();
   };
 
@@ -66,10 +81,10 @@ export default function NovoItemModal({ open, init, onClose }: { open: boolean; 
       }
     >
       <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="Técnico" req>
-          <select id="ni-tec" className="field" value={f.tecnicoId} disabled={!editaOutros} onChange={(e) => setF({ ...f, tecnicoId: e.target.value, coopId: '', projetoId: '' })}>
-            {(editaOutros ? scope.tecnicos : [me]).map((t) => (
-              <option key={t.id} value={t.id}>{t.nome}</option>
+        <Field label="No cronograma de" req>
+          <select id="ni-tec" className="field" value={f.tecnicoId} onChange={(e) => setF({ ...f, tecnicoId: e.target.value, participantes: f.participantes.filter((p) => p !== e.target.value), coopId: '', projetoId: '' })}>
+            {possiveis.map((t) => (
+              <option key={t.id} value={t.id}>{rotulo(t)}</option>
             ))}
           </select>
         </Field>
@@ -119,6 +134,27 @@ export default function NovoItemModal({ open, init, onClose }: { open: boolean; 
           </Field>
         </div>
       )}
+      <div>
+        <span className="fl"><label>Participantes</label></span>
+        <div className="flex flex-wrap gap-1.5">
+          {possiveis.filter((u) => u.id !== f.tecnicoId).map((u) => {
+            const on = f.participantes.includes(u.id);
+            const pedido = modoInclusao(me, u) === 'pedido';
+            return (
+              <button
+                key={u.id}
+                type="button"
+                className={cn('tag !py-1 !pl-1 !pr-2.5 border transition', on ? '!bg-[var(--ink)] !text-white border-[var(--ink)]' : 'border-[var(--line)] !bg-white')}
+                onClick={() => setF({ ...f, participantes: on ? f.participantes.filter((p) => p !== u.id) : [...f.participantes, u.id] })}
+                aria-pressed={on}
+              >
+                <Avatar u={u} size="xs" /> {u.id === me.id ? 'Eu' : [u.nome.split(' ')[0], u.nome.split(' ').slice(-1)[0]].join(' ')}
+                {pedido && <span className={cn('text-[10px] font-bold', on ? 'text-[var(--lime)]' : 'text-[#1f5f86]')}>· aprovação</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="grid sm:grid-cols-2 gap-3">
         <Field label="Status" req>
           <select id="ni-st" className="field" value={f.status} onChange={(e) => setF({ ...f, status: e.target.value as ItemCrono['status'] })}>

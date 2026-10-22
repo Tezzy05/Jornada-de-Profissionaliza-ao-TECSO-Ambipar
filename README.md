@@ -8,12 +8,12 @@ Protótipo funcional da extensão que leva para o sistema atual da Ambipar a ope
 
 **No computador:** dê dois cliques em **`Abrir Jornada TECSO.bat`**, ou abra `app/index.html` no Chrome ou no Edge. Não precisa de internet nem de instalar nada.
 
-Na tela de login, use o **acesso rápido** ou entre com e-mail e senha. Todos os usuários usam a senha **`planetaA`**.
+Na tela de login, entre com e-mail e senha, ou abra o campo discreto **Acesso de demonstração** abaixo do botão Entrar. Todos os usuários usam a senha **`planetaA`**. Para colocar o sistema no ar, basta retirar esse campo em `sistema/src/features/auth/LoginPage.tsx`.
 
 | Pessoa | Perfil | E-mail |
 |---|---|---|
 | Matheus Correia | ADM / Desenvolvimento | matheus.correia@tecso.demo |
-| Juliana Navea | Gestão (Diretoria) | juliana.navea@tecso.demo |
+| Juliana Navea | Diretoria | juliana.navea@tecso.demo |
 | Leticia Fatima de Castro | Coordenação | leticia.castro@tecso.demo |
 | Yuri Maluf | Técnico operacional | yuri.maluf@tecso.demo |
 | Lilian Prado | Técnico operacional | lilian.prado@tecso.demo |
@@ -26,22 +26,26 @@ Os dados ficam salvos no navegador do computador onde o protótipo foi aberto. F
 
 ## Roteiro sugerido para a apresentação
 
-1. **Login**: o planeta com os continentes reais e o anel de resíduos nas cores da coleta seletiva (papel, plástico, vidro e metal), com o lema "Não existe planeta B. Cuide do planeta A".
+1. **Login**: o formulário fica no centro, em um cartão de vidro claro, com o planeta girando ao fundo (continentes reais e o anel de resíduos nas cores da coleta seletiva: papel, plástico, vidro e metal) e o lema "Não existe planeta B. Cuide do planeta A".
 2. **Yuri (técnico)**:
    - o Painel mostra só as visitas e a agenda dele;
-   - no Cronograma, ele vê só a própria linha;
+   - no Cronograma, ele vê só a própria linha e aprova o pedido da Tacianne para entrar na agenda dele;
+   - o filtro de projetos no topo mostra só os projetos em que ele está vinculado;
    - em *Minhas visitas DCO*, ele continua o rascunho da ACAMBB ou exclui o rascunho duplicado (com opção de desfazer);
    - dentro da visita aparecem as informações do Plano de Ação (P2) e os 7 documentos.
 3. **Lilian (técnica)**: no Cronograma, clica na visita de sexta à COOTRAEMPOCAP e usa **Iniciar visita DCO a partir deste item**.
 4. **Geovani (técnico)**: o Grupo Recicla Norte está com a integração incompleta. A visita e a mentoria ficam bloqueadas até o checklist (Impacta+) ser concluído.
 5. **Leticia (coordenação)**:
    - filtra por tipo de projeto no topo;
+   - no Cronograma, vê a própria linha e a dos técnicos, aprova o pedido do Yuri e acompanha a aba *Entre técnicos*;
+   - cria um evento com a Juliana como participante (vai como pedido de aprovação) e os técnicos (entram direto);
    - aprova ou devolve a visita da Vida Nova;
    - abre o projeto Cidades Circular · Anápolis (tópicos → subtarefas → itens);
    - cria um **Novo projeto**: primeiro os técnicos responsáveis, depois a importação do Excel;
    - abre o **Histórico da cooperativa** e baixa o Excel e o ZIP de fotos.
 6. **Matheus (ADM)**: em *Usuários e acessos*, cria um usuário a partir de um perfil e promove um técnico a Coordenação, com a confirmação do que muda. *Ver como* entra no sistema como aquele usuário.
-7. **Juliana (diretoria)**: Painel geral e *Integração e roadmap*.
+7. **Juliana (diretoria)**: no Cronograma, vê todas as linhas e aprova o *Fechamento semanal* da Leticia; Painel geral e *Integração e roadmap*.
+8. **Geovani (técnico)**: clica em **Eventos Solicitados** e vê que a Leticia recusou o pedido dele, com o motivo.
 
 ## O que tem no protótipo
 
@@ -52,7 +56,13 @@ Os dados ficam salvos no navegador do computador onde o protótipo foi aberto. F
   - Andamento da Semana em %;
   - Próximo item calculado com a data e a hora de agora;
   - itens atrasados ou em andamento são identificados automaticamente;
-  - o técnico vê só a própria agenda.
+  - uma linha por pessoa, incluindo a Coordenação e a Diretoria;
+  - quem vê o quê: o técnico vê só a própria linha; a Coordenação vê a própria e a dos técnicos; a Diretoria vê a própria, a da Coordenação e a dos técnicos; o ADM vê tudo;
+  - no **Novo item**, o campo *No cronograma de* e os **Participantes** seguem a hierarquia: para quem está abaixo, o evento entra direto; para o mesmo nível ou um nível acima, vira pedido de aprovação; dois níveis acima não aparece (o técnico não pede para a Diretoria);
+  - o pedido só pode ser aprovado pela pessoa incluída ou por alguém acima dela; a Coordenação tem a aba *Entre técnicos* com os pedidos pendentes entre eles;
+  - se a pessoa recusa, o evento some da agenda dela e aparece na lista de participantes do evento com o motivo;
+  - indicadores clicáveis (Concluídos, Reagendados, Atrasados e **Eventos Solicitados**) funcionam como filtro, com o botão *Limpar todos os filtros*;
+  - a promoção feita pelo ADM muda o nível da pessoa e, com ele, essas regras.
 - **Visitas DCO**:
   - painel *Minhas visitas*: continuar, excluir rascunho (só rascunhos) e nova visita;
   - os 7 documentos do mockup;

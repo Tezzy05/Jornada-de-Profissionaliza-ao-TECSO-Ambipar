@@ -8,6 +8,7 @@ import { fmtShort, mondayOf, today, weekDays, weekLabel, DN, parseISO } from '@/
 import { cn, firstName, shortName } from '@/lib/utils';
 import { Avatar, Bar } from '@/components/ui';
 import { andamento, proximoItem, statusEfetivo } from '@/features/cronograma/logic';
+import { naLinhaDe, pendentes, podeAprovar } from '@/lib/hierarquia';
 import { STATUS_VISITA, visitaPct } from '@/features/visitas/dco';
 import { integracaoStatus } from '@/features/aceleracao/logic';
 import { resumoProjeto, respLabel } from '@/features/cidades/logic';
@@ -50,9 +51,10 @@ export default function PainelPage() {
   const gestor = can(me, 'crono.todos');
 
   const semana = scope.crono.filter((c) => c.data >= dias[0] && c.data <= dias[4]);
-  const minhaSemana = semana.filter((c) => c.tecnicoId === me.id);
+  const minhaSemana = semana.filter((c) => naLinhaDe(c, me.id));
   const and = andamento(gestor ? semana : minhaSemana);
-  const nx = proximoItem(scope.crono.filter((c) => c.tecnicoId === me.id));
+  const nx = proximoItem(scope.crono.filter((c) => naLinhaDe(c, me.id)));
+  const pedidos = db.crono.flatMap((c) => pendentes(c).filter((p) => { const u = db.users.find((x) => x.id === p); return u && podeAprovar(me, u); })).length;
   const rascunhos = scope.visitas.filter((v) => v.tecnicoId === me.id && (v.status === 'rascunho' || v.status === 'devolvida')).sort((a, b) => b.atualizadaEm.localeCompare(a.atualizadaEm));
   const aprovar = can(me, 'visitas.aprovar') ? scope.visitas.filter((v) => v.status === 'enviada') : [];
 
@@ -107,6 +109,9 @@ export default function PainelPage() {
             {aprovar[0] && (
               <button className="btn pri" onClick={() => nav('/visitas?aba=aprovar')}>Revisar visitas enviadas ({aprovar.length}) <ArrowRight /></button>
             )}
+            {pedidos > 0 && (
+              <button className="btn pri" onClick={() => nav('/cronograma')}>Aprovar eventos ({pedidos}) <ArrowRight /></button>
+            )}
             <button className="btn" style={{ color: '#fff', border: '1.5px solid #2f5a3a' }} onClick={() => nav('/cronograma')}><CalendarDays /> Ver cronograma</button>
           </div>
         </div>
@@ -140,14 +145,14 @@ export default function PainelPage() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         {gestor ? (
-          <Section title="Andamento da Semana por técnico" action={<button className="btn link" onClick={() => nav('/cronograma')}>Abrir cronograma</button>}>
+          <Section title="Andamento da Semana por pessoa" action={<button className="btn link" onClick={() => nav('/cronograma')}>Abrir cronograma</button>}>
             <div className="tbl-wrap">
               <table>
                 <tbody>
                   {scope.tecnicos.map((t) => {
-                    const ev = semana.filter((c) => c.tecnicoId === t.id);
+                    const ev = semana.filter((c) => naLinhaDe(c, t.id));
                     const a = andamento(ev);
-                    const n = proximoItem(scope.crono.filter((c) => c.tecnicoId === t.id));
+                    const n = proximoItem(scope.crono.filter((c) => naLinhaDe(c, t.id)));
                     const atr = ev.filter((c) => statusEfetivo(c) === 'Atrasado').length;
                     return (
                       <tr key={t.id}>

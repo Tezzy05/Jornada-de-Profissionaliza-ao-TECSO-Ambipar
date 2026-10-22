@@ -2,10 +2,9 @@ import type { PerfilBase, PermKey, Usuario } from './types';
 
 export const PERFIS: Record<PerfilBase, { nome: string; cargo: string; desc: string }> = {
   tecnico: { nome: 'Técnico operacional', cargo: 'Técnico de campo', desc: 'Preenche visitas, o próprio cronograma e as ações com as cooperativas dos projetos em que está vinculado.' },
-  coord: { nome: 'Coordenação', cargo: 'Coordenação de campo', desc: 'Vê todos os técnicos, cria projetos, aprova visitas e atualiza as demandas dos agentes externos.' },
-  gestao: { nome: 'Gestão (Diretoria)', cargo: 'Diretoria', desc: 'Acompanha tudo, aprova visitas e exporta históricos. Não preenche dados de campo.' },
+  coord: { nome: 'Coordenação', cargo: 'Coordenação de campo', desc: 'Vê todos os técnicos, cria projetos, aprova visitas e eventos entre técnicos e atualiza as demandas dos agentes externos.' },
+  gestao: { nome: 'Diretoria', cargo: 'Diretoria', desc: 'Acompanha tudo, aprova visitas, exporta históricos e inclui eventos direto no cronograma da Coordenação e dos técnicos.' },
   adm: { nome: 'ADM', cargo: 'Administração do sistema', desc: 'Acesso total, incluindo usuários, perfis e acessos.' },
-  consulta: { nome: 'Consulta', cargo: 'Consulta', desc: 'Somente leitura. Dados pessoais mascarados e Eixo 8 oculto.' },
 };
 
 export const PERM_GRUPOS: { grupo: string; itens: { k: PermKey; t: string; d?: string }[] }[] = [
@@ -82,11 +81,10 @@ export const TEMPLATES: Record<PerfilBase, PermKey[]> = {
     'coop.historico', 'coop.exportar', 'grupos.cadastrar',
   ],
   gestao: [
-    'painel.ver', 'crono.todos', 'visitas.verTodas', 'visitas.aprovar', 'dados.eixo8', 'dados.cpf', 'termos.modelo',
+    'painel.ver', 'crono.proprio', 'crono.todos', 'crono.editarTodos', 'visitas.verTodas', 'visitas.aprovar', 'dados.eixo8', 'dados.cpf', 'termos.modelo',
     'aceleracao.ver', 'cidades.ver', 'projetos.todos', 'coop.historico', 'coop.exportar', 'sistema.integracao',
   ],
   adm: [...ALL_PERMS],
-  consulta: ['painel.ver', 'crono.todos', 'visitas.verTodas', 'aceleracao.ver', 'cidades.ver', 'projetos.todos', 'coop.historico'],
 };
 
 export function can(u: Usuario | null | undefined, k: PermKey) {
