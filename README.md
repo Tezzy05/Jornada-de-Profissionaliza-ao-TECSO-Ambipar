@@ -26,7 +26,7 @@ Os dados ficam salvos no navegador do computador onde o protótipo foi aberto. F
 
 ## Roteiro sugerido para a apresentação
 
-1. **Login**: o formulário fica no centro, em um cartão de vidro claro, com o planeta girando ao fundo (continentes reais e o anel de resíduos nas cores da coleta seletiva: papel, plástico, vidro e metal) e o lema "Não existe planeta B. Cuide do planeta A".
+1. **Login**: o formulário fica no centro, em um cartão de vidro claro, com o planeta girando ao fundo (continentes reais e o anel de resíduos nas cores da coleta seletiva: papel, plástico, vidro e metal), o título "Jornada de Profissionalização TECSO" e o lema "Cuide do planeta A".
 2. **Yuri (técnico)**:
    - o Painel mostra só as visitas e a agenda dele;
    - no Cronograma, ele vê só a própria linha e aprova o pedido da Tacianne para entrar na agenda dele;
