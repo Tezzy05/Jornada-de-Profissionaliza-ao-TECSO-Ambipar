@@ -9,7 +9,7 @@ import { cn, uid } from '@/lib/utils';
 import { Avatar, confirmar, Drawer, Field, PageHead, toast } from '@/components/ui';
 import type { PerfilBase, PermKey, Usuario } from '@/lib/types';
 
-const ORDEM: PerfilBase[] = ['tecnico', 'coord', 'gestao', 'adm', 'consulta'];
+const ORDEM: PerfilBase[] = ['tecnico', 'coord', 'gestao', 'adm'];
 
 export default function UsuariosPage() {
   const db = useDB();
@@ -26,7 +26,7 @@ export default function UsuariosPage() {
         <button className="btn pri" onClick={() => setEdit(novo())}><Plus /> Novo usuário</button>
       </PageHead>
 
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-5 mb-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mb-4">
         {ORDEM.map((p) => (
           <div key={p} className="card p-4">
             <span className="lbl">{PERFIS[p].nome}</span>

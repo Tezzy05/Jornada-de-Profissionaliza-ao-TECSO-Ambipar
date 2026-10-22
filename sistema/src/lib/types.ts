@@ -3,7 +3,7 @@
 
 export type MediaId = string;
 
-export type PerfilBase = 'tecnico' | 'coord' | 'gestao' | 'adm' | 'consulta';
+export type PerfilBase = 'tecnico' | 'coord' | 'gestao' | 'adm';
 
 export type PermKey =
   | 'painel.ver'
@@ -134,6 +134,19 @@ export interface ItemCrono {
   status: StatusCrono;
   obs?: string;
   visitaId?: string;
+  /** Quem criou o item (para pedidos de inclusão). */
+  criadoPor?: string;
+  /** Outras pessoas que participam (o item aparece no cronograma delas depois de aprovado). */
+  participantes?: string[];
+  /** Situação de cada pessoa do item (responsável e participantes). Sem registro = aprovado. */
+  aprov?: Record<string, Aprovacao>;
+}
+
+export interface Aprovacao {
+  st: 'pendente' | 'aprovado' | 'recusado';
+  em?: string;
+  por?: string;
+  motivo?: string;
 }
 
 // ---------------- Visita DCO ----------------

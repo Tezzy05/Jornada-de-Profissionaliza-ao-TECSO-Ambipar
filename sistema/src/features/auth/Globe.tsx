@@ -56,7 +56,7 @@ export default function Globe({ className }: { className?: string }) {
     const core = new THREE.Mesh(
       new THREE.SphereGeometry(1, 64, 64),
       new THREE.ShaderMaterial({
-        uniforms: { c1: { value: new THREE.Color('#04210c') }, c2: { value: new THREE.Color('#0c4422') } },
+        uniforms: { c1: { value: new THREE.Color('#5aa874') }, c2: { value: new THREE.Color('#bfe6b0') } },
         vertexShader: `varying vec3 vN; varying vec3 vV; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
         fragmentShader: `uniform vec3 c1; uniform vec3 c2; varying vec3 vN; varying vec3 vV; void main(){ float f=pow(1.-max(dot(vN,vV),0.),2.2); vec3 col=mix(c1,c2,f); gl_FragColor=vec4(col,1.); }`,
       }),
@@ -83,7 +83,7 @@ export default function Globe({ className }: { className?: string }) {
       const land = mask.data[(Math.min(mask.height - 1, v) * mask.width + u) * 4] > 128;
       if (!land) continue;
       pos.push(px * 1.008, y * 1.008, pz * 1.008);
-      const c = LEAF.clone().lerp(LIME, Math.random() * 0.85 + 0.15);
+      const c = new THREE.Color('#1f5a2c').lerp(LEAF, Math.random() * 0.6);
       tint.push(c.r, c.g, c.b);
       seed.push(Math.random() * 6.28);
     }
@@ -108,11 +108,10 @@ export default function Globe({ className }: { className?: string }) {
       new THREE.ShaderMaterial({
         transparent: true,
         side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
         depthWrite: false,
-        uniforms: { c: { value: LIME } },
+        uniforms: { c: { value: new THREE.Color('#b8f03a') } },
         vertexShader: `varying vec3 vN; varying vec3 vV; void main(){ vN=normalize(normalMatrix*normal); vec4 mv=modelViewMatrix*vec4(position,1.); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`,
-        fragmentShader: `uniform vec3 c; varying vec3 vN; varying vec3 vV; void main(){ float d=dot(vN,vV); float i=pow(smoothstep(0.,.6,-d),3.); gl_FragColor=vec4(c, i*.42); }`,
+        fragmentShader: `uniform vec3 c; varying vec3 vN; varying vec3 vV; void main(){ float d=dot(vN,vV); float i=pow(smoothstep(0.,.6,-d),3.); gl_FragColor=vec4(c, i*.55); }`,
       }),
     );
     tilt.add(atmo);
@@ -125,13 +124,13 @@ export default function Globe({ className }: { className?: string }) {
     const R = 1.62;
     const ring = new THREE.Mesh(
       new THREE.TorusGeometry(R, 0.004, 8, 220),
-      new THREE.MeshBasicMaterial({ color: LIME, transparent: true, opacity: 0.35 }),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color('#3f7f1f'), transparent: true, opacity: 0.45 }),
     );
     orbit.add(ring);
     // três setas perseguindo umas às outras, como o símbolo da reciclagem
     const arrows: THREE.Mesh[] = [];
     for (let i = 0; i < 3; i++) {
-      const a = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.16, 18), new THREE.MeshBasicMaterial({ color: LIME }));
+      const a = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.16, 18), new THREE.MeshBasicMaterial({ color: new THREE.Color('#4c8a12') }));
       arrows.push(a);
       orbit.add(a);
     }
@@ -155,7 +154,7 @@ export default function Globe({ className }: { className?: string }) {
     }
     starGeo.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3));
     const stars = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xd9f0c6, size: 0.05, transparent: true, opacity: 0.7 }));
-    scene.add(stars);
+    // fundo claro: sem estrelas
 
     const resize = () => {
       const w = host.clientWidth;
@@ -166,9 +165,10 @@ export default function Globe({ className }: { className?: string }) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       // em telas largas o planeta fica à direita, ao lado do formulário
-      const wide = w / h > 1.15;
-      world.position.set(wide ? 0.95 + Math.min(0.75, (w / h - 1.15) * 0.7) : 0, wide ? 0 : 1.05, 0);
-      world.scale.setScalar(wide ? 0.92 : 0.7);
+      // planeta centralizado, atrás do cartão de login
+      const k = Math.min(1, w / h);
+      world.position.set(0, 0, 0);
+      world.scale.setScalar(Math.max(0.62, 1.12 * k));
     };
     resize();
     const ro = new ResizeObserver(resize);

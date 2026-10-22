@@ -12,6 +12,10 @@ import { criarVisita } from '@/features/visitas/actions';
 import { integracaoStatus } from '@/features/aceleracao/logic';
 import { STATUS_VISITA } from '@/features/visitas/dco';
 import { TecnicoSelect, trocarResponsavel } from '@/components/TecnicoSelect';
+import { nivel, NOME_NIVEL, pessoasDoItem, podeAprovar, situacao } from '@/lib/hierarquia';
+import { fmtDateTime } from '@/lib/dates';
+import { cn } from '@/lib/utils';
+import { BotoesAprovacao } from './aprovacao';
 
 export default function CronoItemDrawer({ id, onClose }: { id: string | null; onClose: () => void }) {
   const db = useDB();
@@ -25,7 +29,7 @@ export default function CronoItemDrawer({ id, onClose }: { id: string | null; on
   const coop = db.coops.find((c) => c.id === item.coopId);
   const proj = db.projetos.find((p) => p.id === item.projetoId);
   const st = statusEfetivo(item);
-  const podeEditar = (item.tecnicoId === me.id && can(me, 'crono.proprio')) || can(me, 'crono.editarTodos');
+  const podeEditar = me.perfil === 'adm' || item.tecnicoId === me.id || nivel(me) > nivel(tec);
   const souTecnico = item.tecnicoId === me.id && can(me, 'visitas.preencher');
   const visita = db.visitas.find((v) => v.id === item.visitaId);
   const aberta = !visita && coop ? db.visitas.filter((v) => v.coopId === coop.id && v.tecnicoId === item.tecnicoId && (v.status === 'rascunho' || v.status === 'devolvida')).sort((a, b) => b.data.localeCompare(a.data))[0] : undefined;
@@ -81,7 +85,7 @@ export default function CronoItemDrawer({ id, onClose }: { id: string | null; on
       <div className="grid gap-2 text-[13.5px]">
         <div className="flex items-center gap-2">
           <Avatar u={tec} size="sm" />
-          {can(me, 'aceleracao.responsaveis') || can(me, 'crono.editarTodos') ? (
+          {tec?.perfil === 'tecnico' && podeEditar && (can(me, 'aceleracao.responsaveis') || can(me, 'crono.editarTodos')) ? (
             <TecnicoSelect
               id="crono-item-tec"
               className="!w-auto !py-1.5"
@@ -104,6 +108,34 @@ export default function CronoItemDrawer({ id, onClose }: { id: string | null; on
           <div className="flex items-center gap-2 muted"><MapPin className="w-4 h-4" /> {item.endereco ?? 'Matriz'} · {coop.enderecos.find((e) => e.tipo === (item.endereco ?? 'Matriz'))?.end ?? coop.enderecos[0]?.end} · {coop.cidade}/{coop.uf}</div>
         )}
         {item.obs && <div className="info">{item.obs}</div>}
+      </div>
+
+      <div>
+        <span className="lbl block mb-1.5">Participantes</span>
+        <div className="panel">
+          {pessoasDoItem(item).map((p) => {
+            const u = db.users.find((x) => x.id === p);
+            const sp = situacao(item, p);
+            const a = item.aprov?.[p];
+            return (
+              <div key={p} className="flex items-start gap-2.5 px-3 py-2.5 border-b last:border-0 border-[var(--line)] text-[13px]">
+                <Avatar u={u} size="xs" />
+                <div className="flex-1 min-w-0">
+                  <b>{u?.nome}</b>
+                  <span className="muted"> · {p === item.tecnicoId ? 'Responsável' : 'Participante'}{u && u.perfil !== 'tecnico' ? ` · ${NOME_NIVEL[u.perfil]}` : ''}</span>
+                  {sp === 'recusado' && <div className="text-[12px] text-[#a3281b]">Recusou{a?.motivo ? `: ${a.motivo}` : ''} · {fmtDateTime(a?.em)}</div>}
+                  {sp === 'pendente' && <div className="muted text-[12px]">Aguardando aprovação desde {fmtDateTime(a?.em)}</div>}
+                </div>
+                {sp === 'pendente' && u && podeAprovar(me, u) ? (
+                  <BotoesAprovacao itemId={item.id} pessoa={p} por={me.id} sm />
+                ) : (
+                  <span className={cn('tag', sp === 'aprovado' ? 'ok' : sp === 'pendente' ? 'blue' : 'red')}>{sp === 'aprovado' ? 'Confirmado' : sp === 'pendente' ? 'Pendente' : 'Recusou'}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {item.criadoPor && item.criadoPor !== item.tecnicoId && <p className="muted text-[12px] mt-1.5">Incluído por {db.users.find((u) => u.id === item.criadoPor)?.nome}</p>}
       </div>
 
       {reag && (

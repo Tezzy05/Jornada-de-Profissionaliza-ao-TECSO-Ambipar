@@ -7,6 +7,7 @@ import type {
 import { uid } from '@/lib/utils';
 import { nowISO } from '@/lib/dates';
 import { buildSeed } from './seed';
+import { TEMPLATES } from '@/lib/permissions';
 import { clearMedia } from '@/lib/media';
 
 export interface DB {
@@ -83,7 +84,7 @@ export const useDB = create<Store>()(
     }),
     {
       name: STORAGE_KEY,
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       // Atualiza dados salvos por versões anteriores do protótipo
       migrate: (persisted, version) => {
@@ -94,6 +95,18 @@ export const useDB = create<Store>()(
           const me = s.mentorias?.find((m) => m.id === 'me_vida');
           if (me && !me.fotos.includes('asset:mentoria-vida-nova')) me.fotos = ['asset:mentoria-vida-nova', ...me.fotos.filter((f) => !f.startsWith('seed:'))];
           s.users?.forEach((u) => { if ((u.perfil === 'coord' || u.perfil === 'adm') && !u.perms.includes('aceleracao.responsaveis')) u.perms.push('aceleracao.responsaveis'); });
+        }
+        if (version < 3 && s && Array.isArray(s.crono)) {
+          // perfil Consulta deixou de existir; Diretoria passa a ter cronograma próprio
+          s.users?.forEach((u) => {
+            if ((u.perfil as string) === 'consulta') {
+              u.perfil = 'tecnico';
+              u.perms = [...TEMPLATES.tecnico];
+            }
+            if (u.perfil === 'gestao') (['crono.proprio', 'crono.editarTodos'] as const).forEach((k) => !u.perms.includes(k) && u.perms.push(k));
+          });
+          const novos = buildSeed().crono.filter((c) => c.id.startsWith('crh_') && !s.crono.some((x) => x.id === c.id));
+          s.crono.push(...novos);
         }
         return s;
       },

@@ -263,6 +263,21 @@ export function buildSeed(): DB {
     cr('u_tacianne', d(3), '08:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_anp', coopId: 'c_anapolis', obs: 'Visita técnica à Coop. Recicla Anápolis' }),
     cr('u_tacianne', d(4), '14:00', '17:00', 'Atividade interna', { obs: 'Relatório semanal Anápolis' }),
     cr('u_tacianne', d(9), '08:00', '12:00', 'Ação Cidades Circular', { projetoId: 'p_anp', coopId: 'c_anapolis' }),
+    // Coordenação (Leticia) e Diretoria (Juliana) também têm agenda; ids "crh_" para a migração encontrar
+    cr('u_leticia', d(0), '09:00', '10:30', 'Atividade interna', { id: 'crh_l1', criadoPor: 'u_leticia', obs: 'Reunião semanal de alinhamento com os técnicos', participantes: ['u_yuri', 'u_lilian', 'u_geovani', 'u_tacianne'] }),
+    cr('u_leticia', d(2), '14:00', '16:00', 'Ação Cidades Circular', { id: 'crh_l2', criadoPor: 'u_leticia', projetoId: 'p_anp', obs: 'Reunião mensal com o Cliente Alfa', participantes: ['u_tacianne'] }),
+    cr('u_leticia', d(3), '10:00', '11:30', 'Atividade interna', { id: 'crh_l3', criadoPor: 'u_leticia', obs: 'Revisar as visitas DCO enviadas' }),
+    cr('u_leticia', d(4), '09:00', '10:00', 'Atividade interna', { id: 'crh_l4', criadoPor: 'u_leticia', obs: 'Fechamento semanal com a Diretoria', participantes: ['u_juliana'], aprov: { u_juliana: { st: 'pendente', em: ts(-1, '17:10') } } }),
+    cr('u_leticia', d(8), '09:00', '12:00', 'Atividade interna', { id: 'crh_l5', criadoPor: 'u_leticia', obs: 'Planejamento das capacitações de novembro' }),
+    cr('u_juliana', d(1), '10:00', '11:00', 'Atividade interna', { id: 'crh_j1', criadoPor: 'u_juliana', obs: 'Reunião de diretoria: resultados da TECSO', participantes: ['u_leticia'] }),
+    cr('u_juliana', d(3), '15:00', '16:30', 'Outro', { id: 'crh_j2', criadoPor: 'u_juliana', obs: 'Apresentação da Jornada de Profissionalização TECSO', participantes: ['u_leticia'] }),
+    cr('u_juliana', d(4), '14:00', '15:00', 'Atividade interna', { id: 'crh_j3', criadoPor: 'u_juliana', obs: 'Comitê de sustentabilidade (somente Diretoria)' }),
+    cr('u_juliana', d(9), '09:00', '11:00', 'Atividade interna', { id: 'crh_j4', criadoPor: 'u_juliana', obs: 'Planejamento 2027' }),
+    // pedidos de inclusão: pendentes e recusado
+    cr('u_leticia', d(3), '16:00', '17:00', 'Atividade interna', { id: 'crh_p1', criadoPor: 'u_yuri', obs: 'Validar o Relatório de Campo da ACAMBB com a coordenação', participantes: ['u_yuri'], aprov: { u_leticia: { st: 'pendente', em: ts(0, '08:40') } } }),
+    cr('u_lilian', d(4), '14:00', '15:30', 'Atividade interna', { id: 'crh_p2', criadoPor: 'u_lilian', obs: 'Troca de experiências: layout de galpão', participantes: ['u_geovani'], aprov: { u_geovani: { st: 'pendente', em: ts(0, '09:15') } } }),
+    cr('u_yuri', d(2), '13:30', '14:30', 'Atividade interna', { id: 'crh_p3', criadoPor: 'u_tacianne', obs: 'Apoio no levantamento de rotas de Anápolis', participantes: ['u_tacianne'], aprov: { u_yuri: { st: 'pendente', em: ts(-1, '16:20') } } }),
+    cr('u_geovani', d(1), '16:00', '17:00', 'Atividade interna', { id: 'crh_p4', criadoPor: 'u_geovani', obs: 'Revisar a integração do Grupo Recicla Norte', participantes: ['u_leticia'], aprov: { u_leticia: { st: 'recusado', em: ts(0, '08:05'), por: 'u_leticia', motivo: 'Já tenho reunião com a Diretoria nesse horário' } } }),
   ];
 
   // ---------------- Cidades Circular: tópicos e demandas ----------------
@@ -319,7 +334,7 @@ export function buildSeed(): DB {
     seededAt: new Date().toISOString(),
     users, projetos, coops, crono, visitas, integracoes, mentorias, atendimentos, capacitacoes, topicos, tarefas,
     audit: [
-      { id: 'au1', em: ts(-120), por: 'u_matheus', tipo: 'usuario', alvo: 'u_juliana', texto: 'Usuário criado com o perfil Gestão (Diretoria)' },
+      { id: 'au1', em: ts(-120), por: 'u_matheus', tipo: 'usuario', alvo: 'u_juliana', texto: 'Usuário criado com o perfil Diretoria' },
       { id: 'au2', em: ts(-110), por: 'u_matheus', tipo: 'usuario', alvo: 'u_leticia', texto: 'Usuário criado com o perfil Coordenação' },
       { id: 'au3', em: ts(-100), por: 'u_matheus', tipo: 'usuario', alvo: 'u_yuri', texto: 'Usuário criado com o perfil Técnico operacional' },
       { id: 'au4', em: ts(-100), por: 'u_matheus', tipo: 'usuario', alvo: 'u_lilian', texto: 'Usuário criado com o perfil Técnico operacional' },
