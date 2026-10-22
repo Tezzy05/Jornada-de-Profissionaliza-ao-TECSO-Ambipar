@@ -340,8 +340,9 @@ tr.clickable:hover td { background: #f7faf2; }
 
 /* ---------- login (claro, cartão de vidro no centro, planeta ao fundo) ---------- */
 .login-root { position: relative; min-height: 100%; overflow: hidden; color: var(--text); background: radial-gradient(1200px 700px at 50% 45%, #f6fbef 0%, rgba(246, 251, 239, 0) 60%), linear-gradient(180deg, #dcefe9 0%, #e9f5df 45%, #cfe8b8 100%); }
-.slogan { font: 800 clamp(24px, 2.6vw, 30px)/1.12 Montserrat, sans-serif; letter-spacing: -.6px; color: var(--brand-dark); text-wrap: balance; }
-.slogan > span { color: var(--leaf-d); }
+.login-titulo { font: 800 clamp(23px, 2.4vw, 27px)/1.15 Montserrat, sans-serif; letter-spacing: -.5px; color: var(--brand-dark); text-wrap: balance; margin: 0; }
+.slogan { font: 700 16px/1.2 Montserrat, sans-serif; color: var(--leaf-d); margin: 10px 0 0; }
+.slogan .planeta-a { width: 1.3em; height: 1.3em; vertical-align: -.3em; }
 .planeta-a { display: inline-grid; place-items: center; width: 1.05em; height: 1.05em; vertical-align: -.16em; color: var(--brand-dark); background: var(--lime); border-radius: .26em; padding: .12em; }
 .login-card { background: rgba(255, 255, 255, .8); border: 1px solid rgba(255, 255, 255, .9); border-radius: 28px; padding: 30px 30px 18px; backdrop-filter: blur(18px) saturate(1.2); -webkit-backdrop-filter: blur(18px) saturate(1.2); box-shadow: 0 30px 80px rgba(6, 38, 15, .18), 0 2px 6px rgba(6, 38, 15, .06); }
 .login-lbl { display: block; font: 600 12px Inter, sans-serif; color: #3d4b38; margin-bottom: 6px; }

@@ -37,7 +37,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         <header className="flex items-center justify-between gap-4 px-[max(20px,4vw)] pt-6">
-          <AmbiparWord className="h-7 text-[var(--brand-dark)]" />
+          <AmbiparWord className="h-9 text-[var(--brand-dark)]" />
         </header>
 
         <main className="flex-1 grid place-items-center px-4 py-8">
@@ -47,14 +47,11 @@ export default function LoginPage() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.7, ease: [0.2, 0.7, 0.2, 1] }}
           >
-            <p className="text-[11.5px] uppercase tracking-[1.6px] font-bold text-[var(--leaf-d)] text-center">Jornada de Profissionalização TECSO</p>
-            <h1 className="slogan text-center mt-2">
-              Não existe planeta B.
-              <span className="block">
-                Cuide do planeta{' '}
-                <span className="planeta-a" aria-label="A"><AmbiparMark className="w-full h-full" title="A" /></span>
-              </span>
-            </h1>
+            <h1 className="login-titulo text-center">Jornada de Profissionalização TECSO</h1>
+            <p className="slogan text-center">
+              Cuide do planeta{' '}
+              <span className="planeta-a" aria-label="A"><AmbiparMark className="w-full h-full" title="A" /></span>
+            </p>
 
             <form onSubmit={submit} className="grid gap-3 mt-6">
               <div>
